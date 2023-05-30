@@ -1,0 +1,11 @@
+version: '3'
+
+services:
+  db:
+    image: dm8_server
+    environment:
+      PAGE_SIZE: 16
+      LD_LIBRARY_PATH: /opt/dmdbms/bin
+      INSTANCE_NAME: dm8
+    volumes:
+      - db:/opt/dmdbms/data
