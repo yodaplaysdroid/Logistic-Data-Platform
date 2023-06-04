@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>MySQL Input</title>
+  </head>
+  <body>
+    <h1>MySQL Input</h1>
+    <form method="post" action="{% url 'mysql' %}">
+      {% csrf_token %}
+      <div>
+        <label>
+          Username:
+          <input type="text" name="username" required />
+        </label>
+      </div>
+      <div>
+        <label>
+          Password:
+          <input type="text" name="password" required />
+        </label>
+      </div>
+      <div>
+        <label>
+          Host:
+          <input type="text" name="host" required />
+        </label>
+      </div>
+      <div>
+        <label>
+          Database:
+          <input type="text" name="database" required />
+        </label>
+      </div>
+      <div>
+        <button type="submit">Confirm</button>
+      </div>
+    </form>
+  </body>
+</html>
