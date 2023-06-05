@@ -1,6 +1,9 @@
 from django.shortcuts import render
 from django.http import HttpResponseRedirect, HttpResponse
-from .models import *
+from .scripts.input.db import *
+from .scripts.input.minio import *
+from .scripts.input.hdfs import *
+from .scripts.input.mysql import *
 
 
 def display_menu(request):
@@ -17,15 +20,18 @@ def minio_input(request):
         path = request.POST.get("path")
 
         if filetype == "txt":
-            minio_read_txt(endpoint, accesskey, secretkey, [bucket, path])
+            status = minio_read_txt(endpoint, accesskey, secretkey, [bucket, path])
 
         elif filetype == "csv":
-            minio_read_csv(endpoint, accesskey, secretkey, [bucket, path])
+            status = minio_read_csv(endpoint, accesskey, secretkey, [bucket, path])
 
         elif filetype == "xls":
-            minio_read_excel(endpoint, accesskey, secretkey, [bucket, path])
+            status = minio_read_excel(endpoint, accesskey, secretkey, [bucket, path])
 
-        return HttpResponseRedirect("/home/success/")
+        if status == 0:
+            return HttpResponseRedirect("/home/success/")
+        else:
+            return HttpResponseRedirect("/home/error/")
 
     return render(request, "minio.html")
 
@@ -40,9 +46,10 @@ def mysql_input(request):
         with open("tmp", "w") as f:
             f.write(uname + passwd + host + database)
 
-        mysql_get_data(uname, passwd, host, database)
-
-        return HttpResponseRedirect("/home/success/")
+        if mysql_get_data(uname, passwd, host, database) == 0:
+            return HttpResponseRedirect("/home/success/")
+        else:
+            return HttpResponseRedirect("/home/error/")
 
     return render(request, "mysql.html")
 
@@ -58,14 +65,15 @@ def hdfs_input(request):
             f.write(host + port + directory + filetype)
 
         if filetype == "txt":
-            if hdfs_read_txt(host, port, directory) == -1:
-                return HttpResponseRedirect("/home/error/")
+            status = hdfs_read_txt(host, port, directory)
 
         elif filetype == "csv":
-            if hdfs_read_csv(host, port, directory) == -1:
-                return HttpResponseRedirect("/home/error/")
+            status = hdfs_read_csv(host, port, directory)
 
-        return HttpResponseRedirect("/home/success/")
+        if status == 0:
+            return HttpResponseRedirect("/home/success/")
+        else:
+            return HttpResponseRedirect("/home/error/")
 
     return render(request, "hdfs.html")
 
@@ -74,4 +82,19 @@ def success(request):
     dm = Dameng()
     df = dm.get_all()
     output = str(df)
-    return HttpResponse(output)
+    return render(request, "success.html", {"output": output})
+
+
+def error(request):
+    return render(request, "error.html")
+
+
+def refresh(request):
+    delete_user("weiyin")
+    create_user("weiyin", "lamweiyin")
+    Dameng().create_tables()
+    return HttpResponseRedirect("/home/success/")
+
+
+def debug(request):
+    return render(request, "debug.html")
