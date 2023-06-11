@@ -9,14 +9,7 @@ export default function App(props) {
     <>
       <div className="top">
         <div className="title">
-          <Typography
-            component="h4"
-            variant="h4"
-            sx={{ fontWeight: "bold" }}
-            noWrap
-          >
-            物流平台
-          </Typography>
+          <h1>A5赛题-基于达梦云原生大数据平台的物流信息数据中台系统</h1>
         </div>
       </div>
       <div>
