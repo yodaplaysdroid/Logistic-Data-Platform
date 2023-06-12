@@ -1,6 +1,5 @@
 import * as React from "react";
 import { useState } from "react";
-import { Link } from "react-router-dom";
 
 import Radio from "@mui/material/Radio";
 import RadioGroup from "@mui/material/RadioGroup";
@@ -9,9 +8,16 @@ import FormControl from "@mui/material/FormControl";
 import FormLabel from "@mui/material/FormLabel";
 import TextField from "@mui/material/TextField";
 import FormHelperText from "@mui/material/FormHelperText";
-import Grid from "@mui/material/Grid";
-import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
+import { ThemeProvider, createTheme } from "@mui/material";
+
+const theme = createTheme({
+  palette: {
+    primary: {
+      main: "#d46969",
+    },
+  },
+});
 
 export default function Hdfs() {
   const [host, setHost] = useState("localhost");
@@ -45,17 +51,15 @@ export default function Hdfs() {
 
   return (
     <>
-      <div className="item">
-        <Typography component="h4" variant="h4" textAlign="left">
-          HDFS Input
-        </Typography>
-      </div>
+      <ThemeProvider theme={theme}>
+        <div className="item">
+          <div className="subtitle">HDFS Input</div>
+        </div>
 
-      <Grid container spacing={2}>
-        <Grid item xs={12}>
-          <FormControl>
+        <FormControl>
+          <div className="formitem">
             <TextField
-              sx={{ width: 300 }}
+              sx={{ width: 300, marginRight: 2 }}
               type="text"
               id="host"
               label="Host"
@@ -63,14 +67,8 @@ export default function Hdfs() {
               defaultValue={host}
               onChange={(e) => setHost(e.target.value)}
             />
-            <FormHelperText>eg. localhost</FormHelperText>
-          </FormControl>
-        </Grid>
-
-        <Grid item xs={12}>
-          <FormControl>
             <TextField
-              sx={{ width: 300 }}
+              sx={{ width: 100 }}
               type="text"
               id="port"
               label="Port"
@@ -78,11 +76,9 @@ export default function Hdfs() {
               defaultValue={port}
               onChange={(e) => setPort(e.target.value)}
             />
-            <FormHelperText>eg. 9000</FormHelperText>
-          </FormControl>
-        </Grid>
-
-        <Grid item xs={12}>
+          </div>
+        </FormControl>
+        <div className="formitem">
           <FormControl>
             <FormLabel id="filetype">File Type</FormLabel>
             <RadioGroup
@@ -96,12 +92,11 @@ export default function Hdfs() {
               <FormControlLabel value="txt" control={<Radio />} label="txt" />
             </RadioGroup>
           </FormControl>
-        </Grid>
-
-        <Grid item xs={12}>
+        </div>
+        <div className="formitem">
           <FormControl>
             <TextField
-              sx={{ width: 300 }}
+              sx={{ width: 416 }}
               type="text"
               id="directory"
               label="Directory"
@@ -111,26 +106,27 @@ export default function Hdfs() {
             />
             <FormHelperText>eg. path/to/files</FormHelperText>
           </FormControl>
-        </Grid>
-
-        <Grid item xs={12}>
-          <Button color="primary" variant="contained" onClick={handleConnect}>
+        </div>
+        <div className="formitem">
+          <Button
+            color="primary"
+            variant="contained"
+            sx={{ width: 180, marginRight: 7 }}
+            onClick={handleConnect}
+          >
             Test Connection
           </Button>
-        </Grid>
 
-        <Grid item xs={12}>
-          <Button color="primary" variant="contained" onClick={handleSubmit}>
+          <Button
+            color="primary"
+            variant="contained"
+            sx={{ width: 180 }}
+            onClick={handleSubmit}
+          >
             Submit
           </Button>
-        </Grid>
-
-        <Grid item xs={12}>
-          <Button color="secondary" variant="contained" to="/" component={Link}>
-            Back
-          </Button>
-        </Grid>
-      </Grid>
+        </div>
+      </ThemeProvider>
     </>
   );
 }

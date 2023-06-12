@@ -2,12 +2,18 @@ import React, { useState } from "react";
 import ReactDOM from "react-dom";
 
 import Button from "@mui/material/Button";
-import Grid from "@mui/material/Grid";
-import Typography from "@mui/material/Typography";
 import TextField from "@mui/material/TextField";
 import FormHelperText from "@mui/material/FormHelperText";
 import FormControl from "@mui/material/FormControl";
-import { Link } from "react-router-dom";
+import { ThemeProvider, createTheme } from "@mui/material";
+
+const theme = createTheme({
+  palette: {
+    primary: {
+      main: "#d46969",
+    },
+  },
+});
 
 export default function Mysql(props) {
   const [username, setUsername] = useState("root");
@@ -41,17 +47,15 @@ export default function Mysql(props) {
 
   return (
     <>
-      <div className="item">
-        <Typography component="h4" variant="h4" textAlign="left">
-          MySql Input
-        </Typography>
-      </div>
+      <ThemeProvider theme={theme}>
+        <div className="item">
+          <div className="subtitle">MySql Input</div>
+        </div>
 
-      <Grid container spacing={2}>
-        <Grid item xs={12}>
-          <FormControl>
+        <FormControl>
+          <div className="formitem">
             <TextField
-              sx={{ width: 300 }}
+              sx={{ width: 200, marginRight: 2 }}
               type="text"
               id="username"
               label="Username"
@@ -59,14 +63,8 @@ export default function Mysql(props) {
               defaultValue={username}
               onChange={(e) => setUsername(e.target.value)}
             />
-            <FormHelperText>eg. root</FormHelperText>
-          </FormControl>
-        </Grid>
-
-        <Grid item xs={12}>
-          <FormControl>
             <TextField
-              sx={{ width: 300 }}
+              sx={{ width: 200 }}
               type="password"
               id="password"
               label="Password"
@@ -74,14 +72,13 @@ export default function Mysql(props) {
               defaultValue={password}
               onChange={(e) => setPassword(e.target.value)}
             />
-            <FormHelperText>eg. admin</FormHelperText>
-          </FormControl>
-        </Grid>
+          </div>
+        </FormControl>
 
-        <Grid item xs={12}>
-          <FormControl>
+        <FormControl>
+          <div className="formitem">
             <TextField
-              sx={{ width: 300 }}
+              sx={{ width: 416 }}
               type="text"
               id="host"
               label="Host"
@@ -90,13 +87,13 @@ export default function Mysql(props) {
               onChange={(e) => setHost(e.target.value)}
             />
             <FormHelperText>eg. localhost</FormHelperText>
-          </FormControl>
-        </Grid>
+          </div>
+        </FormControl>
 
-        <Grid item xs={12}>
-          <FormControl>
+        <FormControl>
+          <div className="formitem">
             <TextField
-              sx={{ width: 300 }}
+              sx={{ width: 416 }}
               type="text"
               id="database"
               label="Database"
@@ -104,28 +101,30 @@ export default function Mysql(props) {
               defaultValue={database}
               onChange={(e) => setDatabase(e.target.value)}
             />
-            <FormHelperText>eg. test</FormHelperText>
-          </FormControl>
-        </Grid>
+            <FormHelperText>eg. myDatabase</FormHelperText>
+          </div>
+        </FormControl>
 
-        <Grid item xs={12}>
-          <Button color="primary" variant="contained" onClick={handleConnect}>
+        <div className="formitem">
+          <Button
+            color="primary"
+            variant="contained"
+            sx={{ width: 180, marginRight: 7 }}
+            onClick={handleConnect}
+          >
             Test Connection
           </Button>
-        </Grid>
 
-        <Grid item xs={12}>
-          <Button color="primary" variant="contained" onClick={handleSubmit}>
+          <Button
+            color="primary"
+            variant="contained"
+            sx={{ width: 180 }}
+            onClick={handleSubmit}
+          >
             Submit
           </Button>
-        </Grid>
-
-        <Grid item xs={12}>
-          <Button color="secondary" variant="contained" to="/" component={Link}>
-            Back
-          </Button>
-        </Grid>
-      </Grid>
+        </div>
+      </ThemeProvider>
     </>
   );
 }

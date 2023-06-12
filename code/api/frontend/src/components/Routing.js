@@ -1,12 +1,11 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { Typography } from "@mui/material";
 
 import Mysql from "./Mysql";
 import Hdfs from "./Hdfs";
 import Minio from "./Minio";
-import Home from "./Home";
+import Dashboard from "./Dashboard";
 
 export default function HomePage(props) {
   return (
@@ -17,8 +16,10 @@ export default function HomePage(props) {
             path="/"
             element={
               <>
-                <div className="left">
-                  <Home />
+                <div className="content">
+                  <div className="inputform">
+                    <Dashboard />
+                  </div>
                 </div>
               </>
             }
@@ -27,11 +28,10 @@ export default function HomePage(props) {
             path="/mysql/"
             element={
               <>
-                <div className="left">
-                  <Home />
-                </div>
                 <div className="content">
-                  <Mysql />
+                  <div className="inputform">
+                    <Mysql />
+                  </div>
                 </div>
               </>
             }
@@ -40,11 +40,10 @@ export default function HomePage(props) {
             path="/hdfs/"
             element={
               <>
-                <div className="left">
-                  <Home />
-                </div>
                 <div className="content">
-                  <Hdfs />
+                  <div className="inputform">
+                    <Hdfs />
+                  </div>
                 </div>
               </>
             }
@@ -53,11 +52,10 @@ export default function HomePage(props) {
             path="/minio/"
             element={
               <>
-                <div className="left">
-                  <Home />
-                </div>
                 <div className="content">
-                  <Minio />
+                  <div className="inputform">
+                    <Minio />
+                  </div>
                 </div>
               </>
             }

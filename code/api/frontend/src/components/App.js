@@ -1,16 +1,17 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
 import Routing from "./Routing";
-
-import Typography from "@mui/material/Typography";
+import SideBar from "./Sidebar";
+import Header from "./Header";
 
 export default function App(props) {
   return (
     <>
       <div className="top">
-        <div className="title">
-          <h1>A5赛题-基于达梦云原生大数据平台的物流信息数据中台系统</h1>
-        </div>
+        <Header />
+      </div>
+      <div className="left">
+        <SideBar />
       </div>
       <div>
         <Routing />
