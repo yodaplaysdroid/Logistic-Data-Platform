@@ -10,7 +10,7 @@ class Dameng:
         self.username = username
         self.password = password
 
-    def __connect(self):
+    def connect(self):
         try:
             conn = dmPython.connect(
                 user=self.username,
@@ -25,7 +25,9 @@ class Dameng:
             return -1
 
     def query(self, sqlquery):
-        conn = self.__connect()
+        conn = self.connect()
+        if conn == -1:
+            return conn
         cursor = conn.cursor()
 
         try:
@@ -39,7 +41,9 @@ class Dameng:
         return results
 
     def exec(self, sqlquery):
-        conn = self.__connect()
+        conn = self.connect()
+        if conn == -1:
+            return conn
         cursor = conn.cursor()
         try:
             cursor.execute(sqlquery)
@@ -50,17 +54,40 @@ class Dameng:
         conn.close()
         return 0
 
-    def get_all(self):
+    def get_count(self):
+        return self.query("select * from records")
+
+    def set_count(self):
         df = []
         tables = ("物流公司", "客户信息", "物流信息", "集装箱动态", "装货表", "卸货表")
         for table in tables:
-            df.append(self.query(f"select * from {table}"))
-        return df
+            df.append(self.query(f"select count(*) from {table}"))
+        for i in range(6):
+            self.exec(
+                f"update records set num = {df[i][0][0]} where name = '{tables[i]}'"
+            )
+
+
+def hdfs_connect(server, port, directory):
+    conn = SparkSession.builder.appName("base").getOrCreate()
+    tables = ("物流公司", "客户信息", "物流信息", "集装箱动态", "装货表", "卸货表")
+
+    try:
+        for table in tables:
+            conn.read.format("csv").option("header", "true").load(
+                f"hdfs://{server}:{port}/{directory}/{table}.csv"
+            )
+        return 0
+    except Exception as e:
+        print("Connection Error / File Not Found:", e)
+        return -1
 
 
 def hdfs_read_csv(server, port, directory):
     conn = SparkSession.builder.appName("base").getOrCreate()
     dm = Dameng("weiyin", "lamweiyin")
+    if dm.connect() == -1:
+        return -1
 
     tables = ("物流公司", "客户信息", "物流信息", "集装箱动态", "装货表", "卸货表")
     count = 0
@@ -153,6 +180,8 @@ def hdfs_read_csv(server, port, directory):
 def hdfs_read_txt(server, port, directory):
     conn = SparkSession.builder.appName("base").getOrCreate()
     dm = Dameng("weiyin", "lamweiyin")
+    if dm.connect() == -1:
+        return -1
 
     tables = ("物流公司", "客户信息", "物流信息", "集装箱动态", "装货表", "卸货表")
     count = 0
@@ -248,19 +277,38 @@ def hdfs_read_txt(server, port, directory):
     return count
 
 
-def minio_read_excel(endpoint, access_key, secret_key, path):
+def minio_connect(endpoint, access_key, secret_key):
+    conn = Minio(
+        endpoint=endpoint,
+        access_key=access_key,
+        secret_key=secret_key,
+        secure=False,
+    )
     try:
-        conn = Minio(
-            endpoint=endpoint,
-            access_key=access_key,
-            secret_key=secret_key,
-            secure=False,
-        )
+        if not conn.bucket_exists("nonexistingbucket"):
+            return 0
     except Exception as e:
-        print("Connection Error:", e)
+        print(e)
+        return -1
+
+
+def minio_read_excel(endpoint, access_key, secret_key, path):
+    conn = Minio(
+        endpoint=endpoint,
+        access_key=access_key,
+        secret_key=secret_key,
+        secure=False,
+    )
+    try:
+        if not conn.bucket_exists("nonexistingbucket"):
+            return 0
+    except Exception as e:
+        print(e)
         return -1
 
     dm = Dameng("weiyin", "lamweiyin")
+    if dm.connect() == -1:
+        return -1
 
     try:
         conn.fget_object(path[0], path[1], "tmp")
@@ -314,23 +362,26 @@ def minio_read_excel(endpoint, access_key, secret_key, path):
         count += dm.exec(
             f"insert into 卸货表 values ('{r[0]}', '{r[1]}', '{r[2]}', '{r[3]}', '{r[4]}', '{r[5]}', '{r[6]}', '{r[7]}', '{r[8]}', '{r[9]}', '{r[10]}', '{r[11]}')"
         )
-
     return count
 
 
 def minio_read_csv(endpoint, access_key, secret_key, directory):
+    conn = Minio(
+        endpoint=endpoint,
+        access_key=access_key,
+        secret_key=secret_key,
+        secure=False,
+    )
     try:
-        conn = Minio(
-            endpoint=endpoint,
-            access_key=access_key,
-            secret_key=secret_key,
-            secure=False,
-        )
+        if not conn.bucket_exists("nonexistingbucket"):
+            return 0
     except Exception as e:
-        print("Connection Error:", e)
+        print(e)
         return -1
 
     dm = Dameng("weiyin", "lamweiyin")
+    if dm.connect() == -1:
+        return -1
 
     tables = ("集装箱动态", "客户信息", "物流公司", "物流信息", "卸货表", "装货表")
     try:
@@ -388,17 +439,22 @@ def minio_read_csv(endpoint, access_key, secret_key, directory):
 
 
 def minio_read_txt(endpoint, access_key, secret_key, directory):
+    conn = Minio(
+        endpoint=endpoint,
+        access_key=access_key,
+        secret_key=secret_key,
+        secure=False,
+    )
     try:
-        conn = Minio(
-            endpoint=endpoint,
-            access_key=access_key,
-            secret_key=secret_key,
-            secure=False,
-        )
+        if not conn.bucket_exists("nonexistingbucket"):
+            return 0
     except Exception as e:
-        print("Connection Error:", e)
+        print(e)
         return -1
+
     dm = Dameng("weiyin", "lamweiyin")
+    if dm.connect() == -1:
+        return -1
 
     tables = ("集装箱动态", "客户信息", "物流公司", "物流信息", "卸货表", "装货表")
     try:
@@ -455,6 +511,18 @@ def minio_read_txt(endpoint, access_key, secret_key, directory):
     return count
 
 
+def mysql_connect(uname, passwd, host, database):
+    try:
+        conn = mysql.connector.connect(
+            user=uname, password=passwd, host=host, database=database
+        )
+        conn.close()
+        return 0
+    except Exception as e:
+        print("Connection Error: ", e)
+        return -1
+
+
 def mysql_get_data(uname, passwd, host, database):
     try:
         conn = mysql.connector.connect(
@@ -465,6 +533,8 @@ def mysql_get_data(uname, passwd, host, database):
         return -1
 
     dm = Dameng("weiyin", "lamweiyin")
+    if dm.connect() == -1:
+        return -1
     tables = ("集装箱动态", "客户信息", "物流公司", "物流信息", "卸货表", "装货表")
 
     cursor = conn.cursor()
@@ -515,4 +585,4 @@ def mysql_get_data(uname, passwd, host, database):
 
 
 if __name__ == "__main__":
-    print(Dameng().get_all())
+    print(Dameng().get_count()[0])

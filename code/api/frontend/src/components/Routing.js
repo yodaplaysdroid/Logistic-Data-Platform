@@ -17,7 +17,7 @@ export default function HomePage(props) {
             element={
               <>
                 <div className="content">
-                  <div className="inputform">
+                  <div className="mainpanel">
                     <Dashboard />
                   </div>
                 </div>
@@ -29,9 +29,7 @@ export default function HomePage(props) {
             element={
               <>
                 <div className="content">
-                  <div className="inputform">
-                    <Mysql />
-                  </div>
+                  <Mysql />
                 </div>
               </>
             }
@@ -41,9 +39,7 @@ export default function HomePage(props) {
             element={
               <>
                 <div className="content">
-                  <div className="inputform">
-                    <Hdfs />
-                  </div>
+                  <Hdfs />
                 </div>
               </>
             }
@@ -53,9 +49,7 @@ export default function HomePage(props) {
             element={
               <>
                 <div className="content">
-                  <div className="inputform">
-                    <Minio />
-                  </div>
+                  <Minio />
                 </div>
               </>
             }
