@@ -1,279 +1,234 @@
 import dmPython
-from pyspark.sql import SparkSession
 from minio import Minio
 import pandas as pd
 import mysql.connector
+import os
+from datetime import datetime
 
 
 class Dameng:
-    def __init__(self, username="weiyin", password="lamweiyin"):
+    def __init__(
+        self,
+        username="weiyin",
+        password="lamweiyin",
+        server="36.140.31.145",
+        port=31826,
+    ):
         self.username = username
         self.password = password
+        self.server = server
+        self.port = port
 
     def connect(self):
         try:
-            conn = dmPython.connect(
+            self.conn = dmPython.connect(
                 user=self.username,
                 password=self.password,
-                server="localhost",
-                port=5236,
+                server=self.server,
+                port=self.port,
                 autoCommit=True,
             )
-            return conn
+            self.cursor = self.conn.cursor()
+            return 0
         except Exception as e:
             print(e)
-            return -1
+            return 99
+
+    def close(self):
+        try:
+            self.cursor.close()
+            self.conn.close()
+        except Exception as e:
+            print(e)
+            return 99
 
     def query(self, sqlquery):
-        conn = self.connect()
-        if conn == -1:
-            return conn
-        cursor = conn.cursor()
-
         try:
-            cursor.execute(sqlquery)
+            self.cursor.execute(sqlquery)
         except Exception as e:
             print(e)
-            return -1
+            return 1
 
-        results = cursor.fetchall()
-        conn.close()
+        results = self.cursor.fetchall()
         return results
 
     def exec(self, sqlquery):
-        conn = self.connect()
-        if conn == -1:
-            return conn
-        cursor = conn.cursor()
         try:
-            cursor.execute(sqlquery)
+            self.cursor.execute(sqlquery)
+            return 0
         except Exception as e:
             print(e)
-            return -1
-
-        conn.close()
-        return 0
+            return 1
 
     def get_count(self):
-        return self.query("select * from records")
+        self.connect()
+        result = self.query("select * from 记录信息")
+        self.close()
+        return result
 
     def set_count(self):
         df = []
         tables = ("物流公司", "客户信息", "物流信息", "集装箱动态", "装货表", "卸货表")
+        self.connect()
         for table in tables:
             df.append(self.query(f"select count(*) from {table}"))
         for i in range(6):
-            self.exec(
-                f"update records set num = {df[i][0][0]} where name = '{tables[i]}'"
-            )
+            self.exec(f"update 记录信息 set 记录个数 = {df[i][0][0]} where 表名 = '{tables[i]}'")
+            self.exec("commit")
+        self.close()
 
 
-def hdfs_connect(server, port, directory):
-    conn = SparkSession.builder.appName("base").getOrCreate()
-    tables = ("物流公司", "客户信息", "物流信息", "集装箱动态", "装货表", "卸货表")
+def is_id_valid(id):
+    province = (
+        list(range(11, 16))
+        + list(range(21, 24))
+        + list(range(31, 38))
+        + list(range(41, 47))
+        + list(range(50, 55))
+        + list(range(61, 66))
+        + [71, 81, 82]
+    )
+    state = list(range(0, 91))
+    city = list(range(1, 100))
 
+    def verify(id):
+        sum = 0
+        wi = [7, 9, 10, 5, 8, 4, 2, 1, 6, 3, 7, 9, 10, 5, 8, 4, 2]
+        for i in range(17):
+            sum += int(id[i]) * wi[i]
+        j = sum % 11
+        rem = ["1", "0", "X", "9", "8", "7", "6", "5", "4", "3", "2"]
+        return id[17] == rem[j]
+
+    def is_valid_date(date_string):
+        try:
+            datetime.strptime(date_string, "%Y%m%d")
+            return True
+        except ValueError:
+            return False
+
+    if int(id[0:2]) not in province:
+        return False
+    if int(id[2:4]) not in state:
+        return False
+    if int(id[4:6]) not in city:
+        return False
+    if not is_valid_date(id[6:14]):
+        return False
     try:
-        for table in tables:
-            conn.read.format("csv").option("header", "true").load(
-                f"hdfs://{server}:{port}/{directory}/{table}.csv"
-            )
-        return 0
+        int(id[14:17])
+    except:
+        return False
+    if not verify(id):
+        return False
+    return True
+
+
+def hdfs_connect(directory, filename):
+    try:
+        if os.system(f"rclone copy {directory}{filename} /tmp") == 0:
+            return 0
+        else:
+            return -1
     except Exception as e:
         print("Connection Error / File Not Found:", e)
         return -1
 
 
-def hdfs_read_csv(server, port, directory):
-    conn = SparkSession.builder.appName("base").getOrCreate()
-    dm = Dameng("weiyin", "lamweiyin")
-    if dm.connect() == -1:
-        return -1
-
-    tables = ("物流公司", "客户信息", "物流信息", "集装箱动态", "装货表", "卸货表")
-    count = 0
-
+def hdfs_read(directory, filetype, filename, table, sheet_name):
     try:
-        for table in tables:
-            conn.read.format("csv").option("header", "true").load(
-                f"hdfs://{server}:{port}/{directory}/{table}.csv"
-            )
+        os.system(f"rclone copy {directory}{filename} /tmp")
+        os.system(f"mv /tmp/{filename} /tmp/hdfs")
     except Exception as e:
         print("Connection Error / File Not Found:", e)
         return -1
 
-    df = (
-        conn.read.format("csv")
-        .option("header", "true")
-        .load(f"hdfs://{server}:{port}/{directory}/物流公司.csv")
-    )
-    rows = df.collect()
-    values = [[row[i] for i in range(len(row))] for row in rows]
-    for r in values:
-        count += dm.exec(
-            f"insert into 物流公司 values ('{r[0]}', '{r[1]}', '{r[2]}', '{r[3]}', '{r[4]}')"
-        )
-
-    df = (
-        conn.read.format("csv")
-        .option("header", "true")
-        .load(f"hdfs://{server}:{port}/{directory}/客户信息.csv")
-    )
-    rows = df.collect()
-    values = [[row[i] for i in range(len(row))] for row in rows]
-    for r in values:
-        count += dm.exec(
-            f"insert into 客户信息 values ('{r[0]}', '{r[1]}', '{r[2]}', '{r[3]}')"
-        )
-
-    df = (
-        conn.read.format("csv")
-        .option("header", "true")
-        .load(f"hdfs://{server}:{port}/{directory}/物流信息.csv")
-    )
-    rows = df.collect()
-    values = [[row[i] for i in range(len(row))] for row in rows]
-    for r in values:
-        count += dm.exec(
-            f"insert into 物流信息 values ('{r[0]}', '{r[1]}', '{r[2]}', '{r[3]}', '{r[4]}', '{r[5]}', '{r[6]}')"
-        )
-
-    df = (
-        conn.read.format("csv")
-        .option("header", "true")
-        .load(f"hdfs://{server}:{port}/{directory}/集装箱动态.csv")
-    )
-    rows = df.collect()
-    values = [[row[i] for i in range(len(row))] for row in rows]
-    for r in values:
-        count += dm.exec(
-            f"insert into 集装箱动态 values ('{r[0]}', '{r[1]}', '{r[2]}', '{r[3]}', '{r[4]}', '{r[5]}', '{r[6]}')"
-        )
-
-    df = (
-        conn.read.format("csv")
-        .option("header", "true")
-        .load(f"hdfs://{server}:{port}/{directory}/装货表.csv")
-    )
-    rows = df.collect()
-    values = [[row[i] for i in range(len(row))] for row in rows]
-    for r in values:
-        count += dm.exec(
-            f"insert into 装货表 values ('{r[0]}', '{r[1]}', '{r[2]}', '{r[3]}', '{r[4]}', '{r[5]}', '{r[6]}', '{r[7]}', '{r[8]}', '{r[9]}', '{r[10]}', '{r[11]}')"
-        )
-
-    df = (
-        conn.read.format("csv")
-        .option("header", "true")
-        .load(f"hdfs://{server}:{port}/{directory}/卸货表.csv")
-    )
-    rows = df.collect()
-    values = [[row[i] for i in range(len(row))] for row in rows]
-    for r in values:
-        count += dm.exec(
-            f"insert into 卸货表 values ('{r[0]}', '{r[1]}', '{r[2]}', '{r[3]}', '{r[4]}', '{r[5]}', '{r[6]}', '{r[7]}', '{r[8]}', '{r[9]}', '{r[10]}', '{r[11]}')"
-        )
-
-    conn.stop()
-    return count
-
-
-def hdfs_read_txt(server, port, directory):
-    conn = SparkSession.builder.appName("base").getOrCreate()
     dm = Dameng("weiyin", "lamweiyin")
-    if dm.connect() == -1:
-        return -1
+    if dm.connect() == 99:
+        return 99
 
-    tables = ("物流公司", "客户信息", "物流信息", "集装箱动态", "装货表", "卸货表")
     count = 0
 
-    try:
-        for table in tables:
-            conn.read.format("csv").option("header", "true").load(
-                f"hdfs://{server}:{port}/{directory}/{table}.csv"
+    if filetype == "csv":
+        try:
+            df = pd.read_csv("/tmp/hdfs", encoding="gbk", quotechar="'")
+        except Exception as e:
+            try:
+                df = pd.read_csv("/tmp/hdfs", quotechar="'")
+            except Exception as f:
+                print(f)
+            print("File Reading Error", e)
+            return 1
+
+    elif filetype == "txt":
+        try:
+            df = pd.read_csv("/tmp/hdfs", sep="\t", encoding="gbk", quotechar="'")
+        except Exception as e:
+            try:
+                df = pd.read_csv("/tmp/hdfs", sep="\t", quotechar="'")
+            except Exception as f:
+                print(f)
+            print("File Reading Error", e)
+            return 1
+
+    else:
+        try:
+            df = pd.read_excel("/tmp/hdfs", sheet_name=sheet_name)
+        except Exception as e:
+            print("File Reading Error", e)
+            return 1
+
+    count = 0
+    if table == "物流公司":
+        for i, r in df.iterrows():
+            count += dm.exec(
+                f"insert into 物流公司 values ('{r[0]}', '{r[1]}', '{r[2]}', '{r[3]}', '{r[4]}')"
             )
-    except Exception as e:
-        print("Connection Error / File Not Exist:", e)
-        return -1
+            print(i)
 
-    df = (
-        conn.read.format("csv")
-        .option("header", "true")
-        .option("delimiter", "\t")
-        .load(f"hdfs://{server}:{port}/{directory}/物流公司.txt")
-    )
-    rows = df.collect()
-    values = [[row[i] for i in range(len(row))] for row in rows]
-    for r in values:
-        count += dm.exec(
-            f"insert into 物流公司 values ('{r[0]}', '{r[1]}', '{r[2]}', '{r[3]}', '{r[4]}')"
-        )
+    elif table == "客户信息":
+        for i, r in df.iterrows():
+            if is_id_valid(r[1]):
+                count += dm.exec(
+                    f"insert into 客户信息 values ('{r[0]}', '{r[1]}', '{r[2]}', '{r[3]}')"
+                )
+            else:
+                count += 1
+                dm.exec(
+                    f"insert into 假客户信息 values ('{r[0]}', '{r[1]}', '{r[2]}', '{r[3]}')"
+                )
+            print(i)
 
-    df = (
-        conn.read.format("csv")
-        .option("header", "true")
-        .option("delimiter", "\t")
-        .load(f"hdfs://{server}:{port}/{directory}/客户信息.txt")
-    )
-    rows = df.collect()
-    values = [[row[i] for i in range(len(row))] for row in rows]
-    for r in values:
-        count += dm.exec(
-            f"insert into 客户信息 values ('{r[0]}', '{r[1]}', '{r[2]}', '{r[3]}')"
-        )
+    elif table == "物流信息":
+        for i, r in df.iterrows():
+            count += dm.exec(
+                f"insert into 物流信息 values ('{r[0]}', '{r[1]}', '{r[2]}', '{r[3]}', '{r[4]}', '{r[5]}', '{r[6]}')"
+            )
+            print(i)
 
-    df = (
-        conn.read.format("csv")
-        .option("header", "true")
-        .option("delimiter", "\t")
-        .load(f"hdfs://{server}:{port}/{directory}/物流信息.txt")
-    )
-    rows = df.collect()
-    values = [[row[i] for i in range(len(row))] for row in rows]
-    for r in values:
-        count += dm.exec(
-            f"insert into 物流信息 values ('{r[0]}', '{r[1]}', '{r[2]}', '{r[3]}', '{r[4]}', '{r[5]}', '{r[6]}')"
-        )
+    elif table == "集装箱动态":
+        for i, r in df.iterrows():
+            count += dm.exec(
+                f"insert into 集装箱动态 values ('{r[0]}', '{r[1]}', '{r[2]}', '{r[3]}', '{r[4]}', '{r[5]}', '{r[6]}')"
+            )
+            print(i)
 
-    df = (
-        conn.read.format("csv")
-        .option("header", "true")
-        .option("delimiter", "\t")
-        .load(f"hdfs://{server}:{port}/{directory}/集装箱动态.txt")
-    )
-    rows = df.collect()
-    values = [[row[i] for i in range(len(row))] for row in rows]
-    for r in values:
-        count += dm.exec(
-            f"insert into 集装箱动态 values ('{r[0]}', '{r[1]}', '{r[2]}', '{r[3]}', '{r[4]}', '{r[5]}', '{r[6]}')"
-        )
+    elif table == "装货表":
+        for i, r in df.iterrows():
+            count += dm.exec(
+                f"insert into 装货表 values ('{r[0]}', '{r[1]}', '{r[2]}', '{r[3]}', '{r[4]}', '{r[5]}', '{r[6]}', '{r[7]}', '{r[8]}', '{r[9]}', '{r[10]}', '{r[11]}')"
+            )
+            print(i)
 
-    df = (
-        conn.read.format("csv")
-        .option("header", "true")
-        .option("delimiter", "\t")
-        .load(f"hdfs://{server}:{port}/{directory}/装货表.txt")
-    )
-    rows = df.collect()
-    values = [[row[i] for i in range(len(row))] for row in rows]
-    for r in values:
-        count += dm.exec(
-            f"insert into 装货表 values ('{r[0]}', '{r[1]}', '{r[2]}', '{r[3]}', '{r[4]}', '{r[5]}', '{r[6]}', '{r[7]}', '{r[8]}', '{r[9]}', '{r[10]}', '{r[11]}')"
-        )
+    elif table == "卸货表":
+        for i, r in df.iterrows():
+            count += dm.exec(
+                f"insert into 卸货表 values ('{r[0]}', '{r[1]}', '{r[2]}', '{r[3]}', '{r[4]}', '{r[5]}', '{r[6]}', '{r[7]}', '{r[8]}', '{r[9]}', '{r[10]}', '{r[11]}')"
+            )
+            print(i)
 
-    df = (
-        conn.read.format("csv")
-        .option("header", "true")
-        .option("delimiter", "\t")
-        .load(f"hdfs://{server}:{port}/{directory}/卸货表.txt")
-    )
-    rows = df.collect()
-    values = [[row[i] for i in range(len(row))] for row in rows]
-    for r in values:
-        count += dm.exec(
-            f"insert into 卸货表 values ('{r[0]}', '{r[1]}', '{r[2]}', '{r[3]}', '{r[4]}', '{r[5]}', '{r[6]}', '{r[7]}', '{r[8]}', '{r[9]}', '{r[10]}', '{r[11]}')"
-        )
-
-    conn.stop()
+    dm.exec("commit")
+    dm.close()
     return count
 
 
@@ -292,7 +247,16 @@ def minio_connect(endpoint, access_key, secret_key):
         return -1
 
 
-def minio_read_excel(endpoint, access_key, secret_key, path):
+def minio_read(
+    endpoint,
+    access_key,
+    secret_key,
+    bucket,
+    directory,
+    table,
+    filetype,
+    sheet_name="",
+):
     conn = Minio(
         endpoint=endpoint,
         access_key=access_key,
@@ -301,213 +265,108 @@ def minio_read_excel(endpoint, access_key, secret_key, path):
     )
     try:
         if not conn.bucket_exists("nonexistingbucket"):
-            return 0
+            pass
     except Exception as e:
         print(e)
         return -1
 
     dm = Dameng("weiyin", "lamweiyin")
-    if dm.connect() == -1:
-        return -1
+    if dm.connect() == 99:
+        return 99
 
     try:
-        conn.fget_object(path[0], path[1], "tmp")
+        conn.fget_object(bucket, directory, "/tmp/minio")
     except Exception as e:
         print(e)
-        return -1
-
-    tables = ("物流公司", "客户信息", "物流信息", "集装箱动态", "装货表", "卸货表")
-    try:
-        for table in tables:
-            pd.read_excel("tmp", sheet_name=table)
-
-    except Exception as e:
-        print("Sheets missing: ", e)
         return -2
 
-    count = 0
+    if filetype == "txt":
+        try:
+            df = pd.read_csv("/tmp/minio", sep="\t", encoding="gbk", quotechar="'")
 
-    df = pd.read_excel("tmp", sheet_name="物流公司")
-    for i, r in df.iterrows():
-        count += dm.exec(
-            f"insert into 物流公司 values ('{r[0]}', '{r[1]}', '{r[2]}', '{r[3]}', '{r[4]}')"
-        )
+        except Exception as e:
+            try:
+                df = pd.read_csv("/tmp/minio", sep="\t", quotechar="'")
 
-    df = pd.read_excel("tmp", sheet_name="客户信息")
-    for i, r in df.iterrows():
-        count += dm.exec(
-            f"insert into 客户信息 values ('{r[0]}', '{r[1]}', '{r[2]}', '{r[3]}')"
-        )
+            except Exception as f:
+                print(f)
 
-    df = pd.read_excel("tmp", sheet_name="物流信息")
-    for i, r in df.iterrows():
-        count += dm.exec(
-            f"insert into 物流信息 values ('{r[0]}', '{r[1]}', '{r[2]}', '{r[3]}', '{r[4]}', '{r[5]}', '{r[6]}')"
-        )
+            print(e)
+            return 1
 
-    df = pd.read_excel("tmp", sheet_name="集装箱动态")
-    for i, r in df.iterrows():
-        count += dm.exec(
-            f"insert into 集装箱动态 values ('{r[0]}', '{r[1]}', '{r[2]}', '{r[3]}', '{r[4]}', '{r[5]}', '{r[6]}')"
-        )
+    elif filetype == "csv":
+        try:
+            df = pd.read_csv("/tmp/minio", encoding="gbk", quotechar="'")
 
-    df = pd.read_excel("tmp", sheet_name="装货表")
-    for i, r in df.iterrows():
-        count += dm.exec(
-            f"insert into 装货表 values ('{r[0]}', '{r[1]}', '{r[2]}', '{r[3]}', '{r[4]}', '{r[5]}', '{r[6]}', '{r[7]}', '{r[8]}', '{r[9]}', '{r[10]}', '{r[11]}')"
-        )
+        except Exception as e:
+            try:
+                df = pd.read_csv("/tmp/minio", sep="\t", quotechar="'")
 
-    df = pd.read_excel("tmp", sheet_name="卸货表")
-    for i, r in df.iterrows():
-        count += dm.exec(
-            f"insert into 卸货表 values ('{r[0]}', '{r[1]}', '{r[2]}', '{r[3]}', '{r[4]}', '{r[5]}', '{r[6]}', '{r[7]}', '{r[8]}', '{r[9]}', '{r[10]}', '{r[11]}')"
-        )
-    return count
+            except Exception as f:
+                print(f)
 
+            print(e)
+            return 1
 
-def minio_read_csv(endpoint, access_key, secret_key, directory):
-    conn = Minio(
-        endpoint=endpoint,
-        access_key=access_key,
-        secret_key=secret_key,
-        secure=False,
-    )
-    try:
-        if not conn.bucket_exists("nonexistingbucket"):
-            return 0
-    except Exception as e:
-        print(e)
-        return -1
+    else:
+        try:
+            df = pd.read_excel("/tmp/minio", sheet_name=sheet_name)
 
-    dm = Dameng("weiyin", "lamweiyin")
-    if dm.connect() == -1:
-        return -1
-
-    tables = ("集装箱动态", "客户信息", "物流公司", "物流信息", "卸货表", "装货表")
-    try:
-        for table in tables:
-            conn.fget_object(directory[0], f"{directory[1]}/{table}.csv", "tmp")
-    except Exception as e:
-        print("Object Not Found:", e)
-        return -2
+        except Exception as e:
+            print("Sheets missing: ", e)
+            return 1
 
     count = 0
+    if table == "物流公司":
+        for i, r in df.iterrows():
+            count += dm.exec(
+                f"insert into 物流公司 values ('{r[0]}', '{r[1]}', '{r[2]}', '{r[3]}', '{r[4]}')"
+            )
+            print(i)
 
-    conn.fget_object(directory[0], f"{directory[1]}/物流公司.csv", "tmp")
-    df = pd.read_csv("tmp")
-    for i, r in df.iterrows():
-        count += dm.exec(
-            f"insert into 物流公司 values ('{r[0]}', '{r[1]}', '{r[2]}', '{r[3]}', '{r[4]}')"
-        )
+    elif table == "客户信息":
+        for i, r in df.iterrows():
+            if is_id_valid(r[1]):
+                count += dm.exec(
+                    f"insert into 客户信息 values ('{r[0]}', '{r[1]}', '{r[2]}', '{r[3]}')"
+                )
+            else:
+                count += 1
+                dm.exec(
+                    f"insert into 假客户信息 values ('{r[0]}', '{r[1]}', '{r[2]}', '{r[3]}')"
+                )
+            print(i)
 
-    conn.fget_object(directory[0], f"{directory[1]}/客户信息.csv", "tmp")
-    df = pd.read_csv("tmp")
-    for i, r in df.iterrows():
-        count += dm.exec(
-            f"insert into 客户信息 values ('{r[0]}', '{r[1]}', '{r[2]}', '{r[3]}')"
-        )
+    elif table == "物流信息":
+        for i, r in df.iterrows():
+            count += dm.exec(
+                f"insert into 物流信息 values ('{r[0]}', '{r[1]}', '{r[2]}', '{r[3]}', '{r[4]}', '{r[5]}', '{r[6]}')"
+            )
+            print(i)
 
-    conn.fget_object(directory[0], f"{directory[1]}/物流信息.csv", "tmp")
-    df = pd.read_csv("tmp")
-    for i, r in df.iterrows():
-        count += dm.exec(
-            f"insert into 物流信息 values ('{r[0]}', '{r[1]}', '{r[2]}', '{r[3]}', '{r[4]}', '{r[5]}', '{r[6]}')"
-        )
+    elif table == "集装箱动态":
+        for i, r in df.iterrows():
+            count += dm.exec(
+                f"insert into 集装箱动态 values ('{r[0]}', '{r[1]}', '{r[2]}', '{r[3]}', '{r[4]}', '{r[5]}', '{r[6]}')"
+            )
+            print(i)
 
-    conn.fget_object(directory[0], f"{directory[1]}/集装箱动态.csv", "tmp")
-    df = pd.read_csv("tmp")
-    for i, r in df.iterrows():
-        count += dm.exec(
-            f"insert into 集装箱动态 values ('{r[0]}', '{r[1]}', '{r[2]}', '{r[3]}', '{r[4]}', '{r[5]}', '{r[6]}')"
-        )
+    elif table == "装货表":
+        for i, r in df.iterrows():
+            count += dm.exec(
+                f"insert into 装货表 values ('{r[0]}', '{r[1]}', '{r[2]}', '{r[3]}', '{r[4]}', '{r[5]}', '{r[6]}', '{r[7]}', '{r[8]}', '{r[9]}', '{r[10]}', '{r[11]}')"
+            )
+            print(i)
 
-    conn.fget_object(directory[0], f"{directory[1]}/装货表.csv", "tmp")
-    df = pd.read_csv("tmp")
-    for i, r in df.iterrows():
-        count += dm.exec(
-            f"insert into 装货表 values ('{r[0]}', '{r[1]}', '{r[2]}', '{r[3]}', '{r[4]}', '{r[5]}', '{r[6]}', '{r[7]}', '{r[8]}', '{r[9]}', '{r[10]}', '{r[11]}')"
-        )
+    elif table == "卸货表":
+        for i, r in df.iterrows():
+            count += dm.exec(
+                f"insert into 卸货表 values ('{r[0]}', '{r[1]}', '{r[2]}', '{r[3]}', '{r[4]}', '{r[5]}', '{r[6]}', '{r[7]}', '{r[8]}', '{r[9]}', '{r[10]}', '{r[11]}')"
+            )
+            print(i)
 
-    conn.fget_object(directory[0], f"{directory[1]}/卸货表.csv", "tmp")
-    df = pd.read_csv("tmp")
-    for i, r in df.iterrows():
-        count += dm.exec(
-            f"insert into 卸货表 values ('{r[0]}', '{r[1]}', '{r[2]}', '{r[3]}', '{r[4]}', '{r[5]}', '{r[6]}', '{r[7]}', '{r[8]}', '{r[9]}', '{r[10]}', '{r[11]}')"
-        )
-
-    return count
-
-
-def minio_read_txt(endpoint, access_key, secret_key, directory):
-    conn = Minio(
-        endpoint=endpoint,
-        access_key=access_key,
-        secret_key=secret_key,
-        secure=False,
-    )
-    try:
-        if not conn.bucket_exists("nonexistingbucket"):
-            return 0
-    except Exception as e:
-        print(e)
-        return -1
-
-    dm = Dameng("weiyin", "lamweiyin")
-    if dm.connect() == -1:
-        return -1
-
-    tables = ("集装箱动态", "客户信息", "物流公司", "物流信息", "卸货表", "装货表")
-    try:
-        for table in tables:
-            conn.fget_object(directory[0], f"{directory[1]}/{table}.txt", "tmp")
-    except Exception as e:
-        print("Object Not Found:", e)
-        return -2
-
-    count = 0
-
-    conn.fget_object(directory[0], f"{directory[1]}/物流公司.txt", "tmp")
-    df = pd.read_csv("tmp", delimiter="\t")
-    for i, r in df.iterrows():
-        count += dm.exec(
-            f"insert into 物流公司 values ('{r[0]}', '{r[1]}', '{r[2]}', '{r[3]}', '{r[4]}')"
-        )
-
-    conn.fget_object(directory[0], f"{directory[1]}/客户信息.txt", "tmp")
-    df = pd.read_csv("tmp", delimiter="\t")
-    for i, r in df.iterrows():
-        count += dm.exec(
-            f"insert into 客户信息 values ('{r[0]}', '{r[1]}', '{r[2]}', '{r[3]}')"
-        )
-
-    conn.fget_object(directory[0], f"{directory[1]}/物流信息.txt", "tmp")
-    df = pd.read_csv("tmp", delimiter="\t")
-    for i, r in df.iterrows():
-        count += dm.exec(
-            f"insert into 物流信息 values ('{r[0]}', '{r[1]}', '{r[2]}', '{r[3]}', '{r[4]}', '{r[5]}', '{r[6]}')"
-        )
-
-    conn.fget_object(directory[0], f"{directory[1]}/集装箱动态.txt", "tmp")
-    df = pd.read_csv("tmp", delimiter="\t")
-    for i, r in df.iterrows():
-        count += dm.exec(
-            f"insert into 集装箱动态 values ('{r[0]}', '{r[1]}', '{r[2]}', '{r[3]}', '{r[4]}', '{r[5]}', '{r[6]}')"
-        )
-
-    conn.fget_object(directory[0], f"{directory[1]}/装货表.txt", "tmp")
-    df = pd.read_csv("tmp", delimiter="\t")
-    for i, r in df.iterrows():
-        count += dm.exec(
-            f"insert into 装货表 values ('{r[0]}', '{r[1]}', '{r[2]}', '{r[3]}', '{r[4]}', '{r[5]}', '{r[6]}', '{r[7]}', '{r[8]}', '{r[9]}', '{r[10]}', '{r[11]}')"
-        )
-
-    conn.fget_object(directory[0], f"{directory[1]}/卸货表.txt", "tmp")
-    df = pd.read_csv("tmp", delimiter="\t")
-    for i, r in df.iterrows():
-        count += dm.exec(
-            f"insert into 卸货表 values ('{r[0]}', '{r[1]}', '{r[2]}', '{r[3]}', '{r[4]}', '{r[5]}', '{r[6]}', '{r[7]}', '{r[8]}', '{r[9]}', '{r[10]}', '{r[11]}')"
-        )
-
+    dm.exec("commit")
+    dm.close()
     return count
 
 
@@ -523,7 +382,7 @@ def mysql_connect(uname, passwd, host, database):
         return -1
 
 
-def mysql_get_data(uname, passwd, host, database):
+def mysql_get_data(uname, passwd, host, database, input_table, output_table):
     try:
         conn = mysql.connector.connect(
             user=uname, password=passwd, host=host, database=database
@@ -533,54 +392,68 @@ def mysql_get_data(uname, passwd, host, database):
         return -1
 
     dm = Dameng("weiyin", "lamweiyin")
-    if dm.connect() == -1:
-        return -1
-    tables = ("集装箱动态", "客户信息", "物流公司", "物流信息", "卸货表", "装货表")
+    if dm.connect() == 99:
+        return 99
 
     cursor = conn.cursor()
     try:
-        for table in tables:
-            cursor.execute(f"select * from {table}")
-            cursor.fetchall()
+        cursor.execute(f"select * from {input_table}")
+        results = cursor.fetchall()
     except Exception as e:
         print("Tables missing", e)
         return -2
 
     count = 0
 
-    cursor.execute("select * from 物流公司")
-    for a, b, c, d, e in cursor.fetchall():
-        count += dm.exec(f"insert into 物流公司 values ('{a}', '{b}', '{c}', '{d}', '{e}')")
+    if output_table == "物流公司":
+        for a, b, c, d, e in results:
+            count += dm.exec(
+                f"insert into 物流公司 values ('{a}', '{b}', '{c}', '{d}', '{e}')"
+            )
+            print(a)
 
-    cursor.execute("select * from 客户信息")
-    for a, b, c, d in cursor.fetchall():
-        count += dm.exec(f"insert into 客户信息 values ('{a}', '{b}', '{c}', '{d}')")
+    elif output_table == "客户信息":
+        for a, b, c, d in results:
+            if is_id_valid(b):
+                count += dm.exec(
+                    f"insert into 客户信息 values ('{a}', '{b}', '{c}', '{d}')"
+                )
+            else:
+                count += 1
+                dm.exec(f"insert into 假客户信息 values ('{a}', '{b}', '{c}', '{d}')")
+            print(a)
 
-    cursor.execute("select * from 物流信息")
-    for a, b, c, d, e, f, g in cursor.fetchall():
-        count += dm.exec(
-            f"insert into 物流信息 values ('{a}', '{b}', '{c}', '{d}', '{e}', '{f}', '{g}')"
-        )
+    elif output_table == "物流信息":
+        for a, b, c, d, e, f, g in results:
+            count += dm.exec(
+                f"insert into 物流信息 values ('{a}', '{b}', '{c}', '{d}', '{e}', '{f}', '{g}')"
+            )
+            print(a)
 
-    cursor.execute("select * from 集装箱动态")
-    for a, b, c, d, e, f, g in cursor.fetchall():
-        count += dm.exec(
-            f"insert into 集装箱动态 values ('{a}', '{b}', '{c}', '{d}', '{e}', '{f}', '{g}')"
-        )
+    elif output_table == "集装箱动态":
+        for a, b, c, d, e, f, g in results:
+            count += dm.exec(
+                f"insert into 集装箱动态 values ('{a}', '{b}', '{c}', '{d}', '{e}', '{f}', '{g}')"
+            )
+            print(a)
 
-    cursor.execute("select * from 卸货表")
-    for a, b, c, d, e, f, g, h, i, j, k, l in cursor.fetchall():
-        count += dm.exec(
-            f"insert into 卸货表 values ('{a}', '{b}', '{c}', '{d}', '{e}', '{f}', '{g}', '{h}', '{i}', '{j}', '{k}', '{l}')"
-        )
+    elif output_table == "卸货表":
+        for a, b, c, d, e, f, g, h, i, j, k, l in results:
+            count += dm.exec(
+                f"insert into 卸货表 values ('{a}', '{b}', '{c}', '{d}', '{e}', '{f}', '{g}', '{h}', '{i}', '{j}', '{k}', '{l}')"
+            )
+            print(a)
 
-    cursor.execute("select * from 装货表")
-    for a, b, c, d, e, f, g, h, i, j, k, l in cursor.fetchall():
-        count += dm.exec(
-            f"insert into 装货表 values ('{a}', '{b}', '{c}', '{d}', '{e}', '{f}', '{g}', '{h}', '{i}', '{j}', '{k}', '{l}')"
-        )
+    elif output_table == "装货表":
+        for a, b, c, d, e, f, g, h, i, j, k, l in results:
+            count += dm.exec(
+                f"insert into 装货表 values ('{a}', '{b}', '{c}', '{d}', '{e}', '{f}', '{g}', '{h}', '{i}', '{j}', '{k}', '{l}')"
+            )
+            print(a)
 
     conn.close()
+    dm.exec("commit")
+    dm.close()
     return count
 
 

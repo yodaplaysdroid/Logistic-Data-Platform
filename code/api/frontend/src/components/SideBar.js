@@ -31,10 +31,10 @@ export default function SideBar(props) {
             sx={{ borderRadius: 50, paddingLeft: 2, paddingRight: 2 }}
           >
             <DirectionsBoatFilledRoundedIcon fontSize="large" />
-            <div style={{ fontSize: 28, paddingLeft: 10 }}>Dashboard</div>
+            <div style={{ fontSize: 28, paddingLeft: 10 }}>主页</div>
           </Button>
         </div>
-        <div className="menuheader">Input</div>
+        <div className="menuheader">数据导入</div>
         <Grid item xs={4}>
           <Button
             href="/mysql/"
@@ -42,7 +42,7 @@ export default function SideBar(props) {
             sx={{ borderRadius: 50, paddingLeft: 5 }}
           >
             <StorageRoundedIcon />
-            <div className="menu">MySQL</div>
+            <div className="menu">MySQL数据迁移</div>
           </Button>
         </Grid>
         <Grid item xs={4}>
@@ -52,7 +52,7 @@ export default function SideBar(props) {
             sx={{ borderRadius: 50, paddingLeft: 5 }}
           >
             <Inventory2RoundedIcon />
-            <div className="menu">HDFS</div>
+            <div className="menu">HDFS数据导入</div>
           </Button>
         </Grid>
         <Grid item xs={4}>
@@ -62,11 +62,11 @@ export default function SideBar(props) {
             sx={{ borderRadius: 50, paddingLeft: 5 }}
           >
             <SaveRoundedIcon />
-            <div className="menu">MinIO</div>
+            <div className="menu">MinIO数据导入</div>
           </Button>
         </Grid>
 
-        <div className="menuheader">Analysis</div>
+        <div className="menuheader">数据分析</div>
         <Grid item xs={4}>
           <Button
             href="/ann1/"
@@ -74,7 +74,7 @@ export default function SideBar(props) {
             sx={{ borderRadius: 50, paddingLeft: 5 }}
           >
             <DonutSmallRoundedIcon />
-            <div className="menu">Analysis1</div>
+            <div className="menu">港口吞吐量</div>
           </Button>
         </Grid>
         <Grid item xs={4}>
@@ -84,7 +84,7 @@ export default function SideBar(props) {
             sx={{ borderRadius: 50, paddingLeft: 5 }}
           >
             <DonutSmallRoundedIcon />
-            <div className="menu">Analysis2</div>
+            <div className="menu">货物吞吐量趋势</div>
           </Button>
         </Grid>
         <Grid item xs={4}>
@@ -94,7 +94,7 @@ export default function SideBar(props) {
             sx={{ borderRadius: 50, paddingLeft: 5 }}
           >
             <DonutSmallRoundedIcon />
-            <div className="menu">Analysis3</div>
+            <div className="menu">货物吞吐量同比环比</div>
           </Button>
         </Grid>
         <Grid item xs={4}>
@@ -104,7 +104,7 @@ export default function SideBar(props) {
             sx={{ borderRadius: 50, paddingLeft: 5 }}
           >
             <DonutSmallRoundedIcon />
-            <div className="menu">Analysis4</div>
+            <div className="menu">货物吞吐量占比</div>
           </Button>
         </Grid>
         <Grid item xs={4}>
@@ -114,7 +114,7 @@ export default function SideBar(props) {
             sx={{ borderRadius: 50, paddingLeft: 5 }}
           >
             <DonutSmallRoundedIcon />
-            <div className="menu">Analysis5</div>
+            <div className="menu">货物流向</div>
           </Button>
         </Grid>
         <Grid item xs={4}>
@@ -124,11 +124,11 @@ export default function SideBar(props) {
             sx={{ borderRadius: 50, paddingLeft: 5 }}
           >
             <DonutSmallRoundedIcon />
-            <div className="menu">Analysis6</div>
+            <div className="menu">货物堆场流转周期</div>
           </Button>
         </Grid>
 
-        <div className="menuheader">Preferences</div>
+        <div className="menuheader">其他</div>
         <Grid item xs={4}>
           <Button
             href="/doc/"
@@ -136,7 +136,7 @@ export default function SideBar(props) {
             sx={{ borderRadius: 50, paddingLeft: 5 }}
           >
             <HelpOutlineRoundedIcon />
-            <div className="menu">Documentation</div>
+            <div className="menu">文档</div>
           </Button>
         </Grid>
         <Grid item xs={4}>
@@ -146,7 +146,7 @@ export default function SideBar(props) {
             sx={{ borderRadius: 50, paddingLeft: 5 }}
           >
             <SettingsSuggestRoundedIcon />
-            <div className="menu">Settings</div>
+            <div className="menu">设置</div>
           </Button>
         </Grid>
       </ThemeProvider>

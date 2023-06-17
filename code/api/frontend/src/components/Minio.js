@@ -7,9 +7,10 @@ import FormControlLabel from "@mui/material/FormControlLabel";
 import FormControl from "@mui/material/FormControl";
 import FormLabel from "@mui/material/FormLabel";
 import TextField from "@mui/material/TextField";
-import FormHelperText from "@mui/material/FormHelperText";
 import Button from "@mui/material/Button";
 import { ThemeProvider, createTheme } from "@mui/material";
+import Select from "@mui/material/Select";
+import MenuItem from "@mui/material/MenuItem";
 
 const theme = createTheme({
   palette: {
@@ -20,11 +21,13 @@ const theme = createTheme({
 });
 
 export default function Minio() {
-  const [endpoint, setEndpoint] = useState("localhost:9000");
-  const [accesskey, setAccesskey] = useState("minioadmin");
-  const [secretkey, setSecretkey] = useState("minioadmin");
-  const [bucket, setBucket] = useState("test");
-  const [path, setPath] = useState("csv");
+  const [endpoint, setEndpoint] = useState("minio.damenga-zone.svc");
+  const [accesskey, setAccesskey] = useState("cnsof17014913");
+  const [secretkey, setSecretkey] = useState("Cnsoft15195979130");
+  const [bucket, setBucket] = useState("data");
+  const [directory, setDirectory] = useState("directory/to/file.txt");
+  const [table, setTable] = useState("");
+  const [sheetname, setSheetname] = useState("");
   const [filetype, setFileType] = useState("csv");
   const [connection, setConnection] = useState(0);
   const [res, setRes] = useState(<></>);
@@ -34,7 +37,7 @@ export default function Minio() {
       <>
         {res}
         <br />
-        Connecting...
+        正在连接...
       </>
     );
     const requestOptions = {
@@ -45,7 +48,9 @@ export default function Minio() {
         accesskey: accesskey,
         secretkey: secretkey,
         bucket: bucket,
-        path: path,
+        directory: directory,
+        table: table,
+        sheetname: sheetname,
         filetype: filetype,
         test: 1,
       }),
@@ -56,8 +61,7 @@ export default function Minio() {
         setRes(
           <>
             {res}
-            <br />
-            {data.message}
+            <br />[{data.status}]:{data.message}
           </>
         );
         data.status === 0 ? setConnection(1) : setConnection(0);
@@ -69,7 +73,7 @@ export default function Minio() {
       <>
         {res}
         <br />
-        Submitting...
+        提交中...
       </>
     );
     const requestOptions = {
@@ -80,7 +84,9 @@ export default function Minio() {
         accesskey: accesskey,
         secretkey: secretkey,
         bucket: bucket,
-        path: path,
+        directory: directory,
+        table: table,
+        sheetname: sheetname,
         filetype: filetype,
         test: 0,
       }),
@@ -91,8 +97,7 @@ export default function Minio() {
         setRes(
           <>
             {res}
-            <br />
-            {data.message}
+            <br />[{data.status}]:{data.message}
           </>
         );
       });
@@ -103,7 +108,7 @@ export default function Minio() {
       <ThemeProvider theme={theme}>
         <div className="inputform">
           <div className="item">
-            <div className="subtitle">MinIO Input</div>
+            <div className="subtitle">MinIO 数据导入</div>
           </div>
 
           <FormControl>
@@ -112,12 +117,11 @@ export default function Minio() {
                 sx={{ width: 416 }}
                 type="text"
                 id="endpoint"
-                label="Endpoint"
+                label="MinIO 平台地址"
                 variant="outlined"
                 defaultValue={endpoint}
                 onChange={(e) => setEndpoint(e.target.value)}
               />
-              <FormHelperText>eg. localhost:9000</FormHelperText>
             </div>
           </FormControl>
 
@@ -127,7 +131,7 @@ export default function Minio() {
                 sx={{ width: 200, marginRight: 2 }}
                 type="text"
                 id="accesskey"
-                label="Access Key"
+                label="MinIO 账号"
                 variant="outlined"
                 defaultValue={accesskey}
                 onChange={(e) => setAccesskey(e.target.value)}
@@ -136,42 +140,53 @@ export default function Minio() {
                 sx={{ width: 200 }}
                 type="password"
                 id="secretkey"
-                label="Secret Key"
+                label="密码"
                 variant="outlined"
                 defaultValue={secretkey}
                 onChange={(e) => setSecretkey(e.target.value)}
               />
             </div>
           </FormControl>
-
-          <FormControl>
-            <div className="formitem">
-              <FormLabel id="filetype">File Type</FormLabel>
+          <div className="formitem">
+            <FormControl>
+              <FormLabel id="filetype">文件类型</FormLabel>
               <RadioGroup
                 row
-                sx={{ marginRight: 10 }}
                 aria-labelledby="filetype"
                 name="filetype"
                 defaultValue={filetype}
                 onChange={(e) => setFileType(e.target.value)}
               >
-                <FormControlLabel value="csv" control={<Radio />} label="csv" />
-                <FormControlLabel value="txt" control={<Radio />} label="txt" />
+                <FormControlLabel value="csv" control={<Radio />} label="CSV" />
+                <FormControlLabel value="txt" control={<Radio />} label="TSV" />
                 <FormControlLabel
-                  value="excel"
+                  value="xls"
                   control={<Radio />}
-                  label="excel"
+                  label="EXCEL"
                 />
               </RadioGroup>
-            </div>
-          </FormControl>
+            </FormControl>
+            {filetype === "xls" ? (
+              <FormControl>
+                <TextField
+                  sx={{ width: 130, marginRight: 2, marginLeft: 3 }}
+                  type="text"
+                  id="sheetname"
+                  label="表格名称"
+                  variant="outlined"
+                  defaultValue={sheetname}
+                  onChange={(e) => setSheetname(e.target.value)}
+                />
+              </FormControl>
+            ) : null}
+          </div>
           <FormControl>
             <div className="formitem">
               <TextField
-                sx={{ width: 130 }}
+                sx={{ width: 150 }}
                 type="text"
                 id="bucket"
-                label="Bucket"
+                label="桶"
                 variant="outlined"
                 defaultValue={bucket}
                 onChange={(e) => setBucket(e.target.value)}
@@ -181,44 +196,62 @@ export default function Minio() {
           <FormControl>
             <div className="formitem">
               <TextField
-                sx={{ width: 268 }}
+                sx={{ width: 248 }}
                 type="text"
-                id="path"
-                label="Path"
+                id="directory"
+                label="目录/文件名"
                 variant="outlined"
-                defaultValue={path}
-                onChange={(e) => setPath(e.target.value)}
+                defaultValue={directory}
+                onChange={(e) => setDirectory(e.target.value)}
               />
-              <FormHelperText>eg. dir/to/files</FormHelperText>
+            </div>
+          </FormControl>
+          <FormControl>
+            <div className="formitem">
+              <Select
+                sx={{ width: 300 }}
+                defaultValue={""}
+                displayEmpty
+                inputProps={{ "aria-label": "Without label" }}
+                onChange={(e) => setTable(e.target.value)}
+              >
+                <MenuItem value={""}>输入表选择</MenuItem>
+                <MenuItem value={"物流公司"}>物流公司</MenuItem>
+                <MenuItem value={"客户信息"}>客户信息</MenuItem>
+                <MenuItem value={"物流信息"}>物流信息</MenuItem>
+                <MenuItem value={"集装箱动态"}>集装箱动态</MenuItem>
+                <MenuItem value={"装货表"}>装货表</MenuItem>
+                <MenuItem value={"卸货表"}>卸货表</MenuItem>
+              </Select>
             </div>
           </FormControl>
           <div className="formitem">
             <Button
               color="primary"
               variant="contained"
-              sx={{ width: 180, marginRight: 7 }}
+              sx={{ width: 180, marginRight: 7, borderRadius: 10 }}
               onClick={handleConnect}
             >
-              Test Connection
+              连接测试
             </Button>
             {connection === 1 ? (
               <Button
                 color="primary"
                 variant="contained"
-                sx={{ width: 180 }}
+                sx={{ width: 180, borderRadius: 10 }}
                 onClick={handleSubmit}
               >
-                Submit
+                提交
               </Button>
             ) : (
               <Button
                 color="primary"
                 variant="contained"
                 disabled
-                sx={{ width: 180 }}
+                sx={{ width: 180, borderRadius: 10 }}
                 onClick={handleSubmit}
               >
-                Submit
+                提交
               </Button>
             )}
           </div>

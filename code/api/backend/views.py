@@ -34,50 +34,54 @@ def minio_input(request):
         secretkey = data.get("secretkey")
         filetype = data.get("filetype")
         bucket = data.get("bucket")
-        path = data.get("path")
+        directory = data.get("directory")
+        table = data.get("table")
+        sheet_name = data.get("sheetname")
         istest = data.get("test")
+
+        print(data)
 
         if istest == 1:
             status = minio_connect(endpoint, accesskey, secretkey)
             if status == 0:
                 return JsonResponse(
                     {
-                        "message": "[SUCCESS] Connection to MinIO success!",
+                        "message": "连接成功！",
                         "status": status,
                     }
                 )
             else:
                 return JsonResponse(
                     {
-                        "message": "[ERROR] Connection Error! Please check your entries and make sure no errors",
+                        "message": "连接失败。",
                         "status": status,
                     }
                 )
 
-        if filetype == "txt":
-            status = minio_read_txt(endpoint, accesskey, secretkey, [bucket, path])
-
-        elif filetype == "csv":
-            status = minio_read_csv(endpoint, accesskey, secretkey, [bucket, path])
-
-        elif filetype == "xls":
-            status = minio_read_excel(endpoint, accesskey, secretkey, [bucket, path])
+        status = minio_read(
+            endpoint,
+            accesskey,
+            secretkey,
+            bucket,
+            directory,
+            table,
+            filetype,
+            sheet_name,
+        )
 
         if status == 0:
-            return JsonResponse(
-                {"message": "[SUCCESS] Data received successfully!", "status": status}
-            )
+            return JsonResponse({"message": "数据迁移成功！", "status": status})
         elif status == -1:
             return JsonResponse(
                 {
-                    "message": "[ERROR] Data received unsuccessfully! Please check your directory and make sure it is entered correctly",
+                    "message": "数据迁移失败：文件不存在",
                     "status": status,
                 }
             )
         else:
             return JsonResponse(
                 {
-                    "message": "[ERROR] Data received unsuccessfully! Please check your files whether formatted correctly or records violated contraints",
+                    "message": "数据存在不合格的格式，或不遵守约束条件",
                     "status": status,
                 }
             )
@@ -91,37 +95,45 @@ def mysql_input(request):
         passwd = data.get("password")
         host = data.get("host")
         database = data.get("database")
+        input_table = data.get("inputtable")
+        output_table = data.get("outputtable")
         istest = data.get("test")
 
-        with open("tmp", "w") as f:
-            f.write(uname + passwd + host + database)
+        print(data)
 
         if istest == 1:
             status = mysql_connect(uname, passwd, host, database)
             if status == 0:
                 return JsonResponse(
                     {
-                        "message": "[SUCCESS] Connection to MySQL success!",
+                        "message": "连接成功！",
                         "status": status,
                     }
                 )
             else:
                 return JsonResponse(
                     {
-                        "message": "[ERROR] Connection Error! Please check your entries and make sure no errors",
+                        "message": "连接失败。",
                         "status": status,
                     }
                 )
 
-        status = mysql_get_data(uname, passwd, host, database)
+        status = mysql_get_data(
+            uname, passwd, host, database, input_table, output_table
+        )
         if status == 0:
+            return JsonResponse({"message": "数据迁移成功！", "status": status})
+        elif status == -2:
             return JsonResponse(
-                {"message": "[SUCCESS] Data received successfully!", "status": status}
+                {
+                    "message": "数据迁移失败：表格不存在",
+                    "status": status,
+                }
             )
         else:
             return JsonResponse(
                 {
-                    "message": "[ERROR] Data received unsuccessfully! Please check your tables whether formatted correctly or records violated contraints",
+                    "message": "数据存在不合格的格式，或不遵守约束条件",
                     "status": status,
                 }
             )
@@ -131,43 +143,48 @@ def mysql_input(request):
 def hdfs_input(request):
     if request.method == "POST":
         data = json.loads(request.body)
-        host = data.get("host")
-        port = data.get("port")
+        endpoint = data.get("endpoint")
         directory = data.get("directory")
+        filename = data.get("filename")
         filetype = data.get("filetype")
+        sheet_name = data.get("sheetname")
+        table = data.get("table")
         istest = data.get("test")
 
+        print(data)
+
         if istest == 1:
-            status = hdfs_connect(host, port, directory)
+            status = hdfs_connect(directory, filename)
             if status == 0:
                 return JsonResponse(
                     {
-                        "message": "[SUCCESS] Connection to HDFS Success!",
+                        "message": "连接成功！",
                         "status": status,
                     }
                 )
             else:
                 return JsonResponse(
                     {
-                        "message": "[ERROR] Connection Error! Please check your entries and make sure no errors",
+                        "message": "连接失败。",
                         "status": status,
                     }
                 )
 
-        if filetype == "txt":
-            status = hdfs_read_txt(host, port, directory)
-
-        elif filetype == "csv":
-            status = hdfs_read_csv(host, port, directory)
+        status = hdfs_read(directory, filetype, filename, table, sheet_name)
 
         if status == 0:
+            return JsonResponse({"message": "数据导入成功！", "status": status})
+        elif status == -1:
             return JsonResponse(
-                {"message": "[SUCCESS] Data received successfully!", "status": status}
+                {
+                    "message": "数据导入失败：文件不存在",
+                    "status": status,
+                }
             )
         else:
             return JsonResponse(
                 {
-                    "message": "[ERROR] Data received unsuccessfully! Please ensure your HDFS is connected and make sure the files are structured properly",
+                    "message": "数据存在不合格的格式，或不遵守约束条件",
                     "status": status,
                 }
             )
