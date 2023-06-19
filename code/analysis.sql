@@ -1,3 +1,74 @@
+create table 物流公司 (
+公司名称 varchar(100) not null unique,
+客户编号 varchar(50) not null,
+联系人 varchar(50),
+电话 varchar(20),
+省市区 varchar(100),
+primary key(客户编号))
+
+create table 客户信息 (
+客户名称 varchar(50) not null,
+客户编号 varchar(20) not null,
+手机号 varchar(20) not null unique,
+省市区 varchar(100),
+primary key(客户编号))
+
+create table 物流信息 (
+提单号 varchar(50) not null,
+货主名称 varchar(50) not null,
+货主代码 varchar(20) not null foreign key references 客户信息(客户编号),
+物流公司_货代 varchar(100) not null foreign key references 物流公司(公司名称),
+集装箱箱号 varchar(50) not null,
+货物名称 varchar(50) not null,
+货重_吨 varchar(50) not null,
+primary key(提单号))
+
+create table 集装箱动态 (
+堆存港口 varchar(100) not null,
+集装箱箱号 varchar(50) not null,
+箱尺寸_TEU varchar(50),
+提单号 varchar(100) not null foreign key references 物流信息(提单号),
+堆场位置 varchar(100) not null,
+操作 varchar(50) not null,
+操作日期 varchar(50) not null,
+primary key(集装箱箱号, 提单号, 操作))
+
+create table 装货表 (
+船公司 varchar(100),
+船名称 varchar(100),
+作业开始时间 varchar(100),
+作业结束时间 varchar(100),
+始发时间 varchar(100),
+到达时间 varchar(100),
+作业港口 varchar(100),
+提单号 varchar(100) not null foreign key references 物流信息(提单号),
+集装箱箱号 varchar(100),
+箱尺寸_TEU varchar(100),
+启运地 varchar(100),
+目的地 varchar(100),
+primary key(提单号))
+
+create table 卸货表 (
+船公司 varchar(100),
+船名称 varchar(100),
+作业开始时间 varchar(100),
+作业结束时间 varchar(100),
+始发时间 varchar(100),
+到达时间 varchar(100),
+作业港口 varchar(100),
+提单号 varchar(100) not null foreign key references 物流信息(提单号),
+集装箱箱号 varchar(100),
+箱尺寸_TEU varchar(100),
+启运地 varchar(100),
+目的地 varchar(100),
+primary key(提单号))
+
+create table 假客户信息 (
+客户名称 varchar(50),
+客户编号 varchar(20),
+手机号 varchar(20),
+省市区 varchar(100))
+
 
 // 港口吞吐量分析
 create view 分析一 as
@@ -45,3 +116,13 @@ and 装货表.集装箱箱号 = 卸货表.集装箱箱号
 and 装货表.提单号 = 物流信息.提单号
 group by 物流信息.货物名称
 order by 时间消耗_日
+
+create view 分析3 as
+select s1.货物名称, sum(s1.总货重) as y1, sum(s2.总货重) as y2, (sum(s2.总货重) - sum(s1.总货重)) as y3 from
+(select * from 分析三 where 年月 like '%-12%') as s1,
+(select * from 分析三 where 年月 like '%-11%') as s2
+where s1.货物名称 = s2.货物名称
+group by s1.货物名称;
+
+create view 分析5 as
+select 货物名称 as x, 数量吞吐量, 总货重 from 分析五 where 堆存港口 = '杭州港';
