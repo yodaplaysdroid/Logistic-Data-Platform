@@ -17,4 +17,20 @@
   bottom: 0px;
   top: 0px;
   left: 0px;
+  z-index: 0px;
+}
+.selection {
+  position: relative;
+  width: 200px;
+  top: 20px;
+  left: 1020px;
+  z-index: 1;
+}
+.selection1 {
+  position: relative;
+  width: 500px;
+  top: 20px;
+  left: 800px;
+  z-index: 1;
+  display: inline;
 }

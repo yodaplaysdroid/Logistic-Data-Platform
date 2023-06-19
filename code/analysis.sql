@@ -15,11 +15,11 @@ order by 总货重 desc, 客户量 desc
 
 // 港口货物吞吐同比环比
 create view 分析三 as
-select substring(集装箱动态.操作日期, 1, 4) as 年, substring(集装箱动态.操作日期, 6, 2) as 月, 物流信息.货物名称, sum(物流信息.货重_吨/(LENGTH(物流信息.集装箱箱号) - LENGTH(REPLACE(物流信息.集装箱箱号, ',', ''))+1))/2 AS 总货重
+select substring(集装箱动态.操作日期, 1, 7) as 年月, 物流信息.货物名称, sum(物流信息.货重_吨/(LENGTH(物流信息.集装箱箱号) - LENGTH(REPLACE(物流信息.集装箱箱号, ',', ''))+1))/2 AS 总货重
 from 物流信息, 集装箱动态
 where 物流信息.提单号 = 集装箱动态.提单号 
-group by substring(集装箱动态.操作日期, 1, 4), substring(集装箱动态.操作日期, 6, 2), 物流信息.货物名称
-ORDER BY substring(集装箱动态.操作日期, 1, 4), substring(集装箱动态.操作日期, 6, 2), 总货重 desc
+group by substring(集装箱动态.操作日期, 1, 7), 物流信息.货物名称
+ORDER BY substring(集装箱动态.操作日期, 1, 7), 总货重 desc
 
 // 不同货物吞吐量占比
 create view 分析四 as
