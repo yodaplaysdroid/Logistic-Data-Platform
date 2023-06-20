@@ -100,38 +100,40 @@ export default function Mysql(props) {
   return (
     <>
       <ThemeProvider theme={theme}>
-        <div className="inputform">
-          <div className="item">
+        <div className="inputformouter">
+          <div className="inputform">
             <div className="subtitle">MySql 数据迁移</div>
-          </div>
+            <FormControl fullWidth>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                }}
+              >
+                <TextField
+                  sx={{ width: "48%", margin: 2, marginRight: 1 }}
+                  type="text"
+                  id="username"
+                  label="用户名"
+                  variant="outlined"
+                  defaultValue={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                />
+                <TextField
+                  sx={{ width: "48%", margin: 2, marginLeft: 1 }}
+                  type="password"
+                  id="password"
+                  label="密码"
+                  variant="outlined"
+                  defaultValue={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+              </div>
+            </FormControl>
 
-          <FormControl>
-            <div className="formitem">
+            <FormControl fullWidth>
               <TextField
-                sx={{ width: 200, marginRight: 2 }}
-                type="text"
-                id="username"
-                label="用户名"
-                variant="outlined"
-                defaultValue={username}
-                onChange={(e) => setUsername(e.target.value)}
-              />
-              <TextField
-                sx={{ width: 200 }}
-                type="password"
-                id="password"
-                label="密码"
-                variant="outlined"
-                defaultValue={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </div>
-          </FormControl>
-
-          <FormControl>
-            <div className="formitem">
-              <TextField
-                sx={{ width: 416 }}
+                sx={{ margin: 2 }}
                 type="text"
                 id="host"
                 label="MySql 平台主机地址"
@@ -139,13 +141,11 @@ export default function Mysql(props) {
                 defaultValue={host}
                 onChange={(e) => setHost(e.target.value)}
               />
-            </div>
-          </FormControl>
+            </FormControl>
 
-          <FormControl>
-            <div className="formitem">
+            <FormControl fullWidth>
               <TextField
-                sx={{ width: 416 }}
+                sx={{ margin: 2 }}
                 type="text"
                 id="database"
                 label="数据库"
@@ -153,75 +153,83 @@ export default function Mysql(props) {
                 defaultValue={database}
                 onChange={(e) => setDatabase(e.target.value)}
               />
-            </div>
-          </FormControl>
+            </FormControl>
 
-          <FormControl>
-            <div className="formitem">
-              <TextField
-                sx={{ width: 230 }}
-                type="text"
-                id="inputtable"
-                label="MySql 输入表名"
-                variant="outlined"
-                onChange={(e) => setInputtable(e.target.value)}
-              />
-            </div>
-          </FormControl>
-
-          <FormControl>
-            <div className="formitem">
-              <Select
-                sx={{ width: 165 }}
-                defaultValue={""}
-                displayEmpty
-                inputProps={{ "aria-label": "Without label" }}
-                onChange={(e) => setOutputtable(e.target.value)}
+            <FormControl fullWidth>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                }}
               >
-                <MenuItem value={""}>输入表选择</MenuItem>
-                <MenuItem value={"物流公司"}>物流公司</MenuItem>
-                <MenuItem value={"客户信息"}>客户信息</MenuItem>
-                <MenuItem value={"物流信息"}>物流信息</MenuItem>
-                <MenuItem value={"集装箱动态"}>集装箱动态</MenuItem>
-                <MenuItem value={"装货表"}>装货表</MenuItem>
-                <MenuItem value={"卸货表"}>卸货表</MenuItem>
-              </Select>
-            </div>
-          </FormControl>
-
-          <div className="formitem">
-            <Button
-              color="primary"
-              variant="contained"
-              sx={{ width: 180, marginRight: 7, borderRadius: 10 }}
-              onClick={handleConnect}
-            >
-              连接测试
-            </Button>
-            {connection === 1 ? (
-              <Button
-                color="primary"
-                variant="contained"
-                sx={{ width: 180, borderRadius: 10 }}
-                onClick={handleSubmit}
+                <TextField
+                  sx={{ width: "60%", margin: 2, marginRight: 1 }}
+                  type="text"
+                  id="inputtable"
+                  label="MySql 输入表名"
+                  variant="outlined"
+                  onChange={(e) => setInputtable(e.target.value)}
+                />
+                <Select
+                  sx={{ width: "40%", margin: 2, marginLeft: 1 }}
+                  defaultValue={""}
+                  displayEmpty
+                  inputProps={{ "aria-label": "Without label" }}
+                  onChange={(e) => setOutputtable(e.target.value)}
+                >
+                  <MenuItem value={""}>输入表选择</MenuItem>
+                  <MenuItem value={"物流公司"}>物流公司</MenuItem>
+                  <MenuItem value={"客户信息"}>客户信息</MenuItem>
+                  <MenuItem value={"物流信息"}>物流信息</MenuItem>
+                  <MenuItem value={"集装箱动态"}>集装箱动态</MenuItem>
+                  <MenuItem value={"装货表"}>装货表</MenuItem>
+                  <MenuItem value={"卸货表"}>卸货表</MenuItem>
+                </Select>
+              </div>
+            </FormControl>
+            <FormControl fullWidth>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                }}
               >
-                提交
-              </Button>
-            ) : (
-              <Button
-                color="primary"
-                variant="contained"
-                disabled
-                sx={{ width: 180, borderRadius: 10 }}
-                onClick={handleSubmit}
-              >
-                提交
-              </Button>
-            )}
+                <Button
+                  color="primary"
+                  variant="contained"
+                  sx={{ width: "40%", margin: 5, borderRadius: 10 }}
+                  onClick={handleConnect}
+                >
+                  连接测试
+                </Button>
+                {connection === 1 ? (
+                  <Button
+                    color="primary"
+                    variant="contained"
+                    sx={{ width: "40%", margin: 5, borderRadius: 10 }}
+                    onClick={handleSubmit}
+                  >
+                    提交
+                  </Button>
+                ) : (
+                  <Button
+                    color="primary"
+                    variant="contained"
+                    disabled
+                    sx={{ width: "40%", margin: 5, borderRadius: 10 }}
+                    onClick={handleSubmit}
+                  >
+                    提交
+                  </Button>
+                )}
+              </div>
+            </FormControl>
           </div>
-        </div>
-        <div className="consolepanel">
-          <div className="console">{res}</div>
+          <div className="consolepanel">
+            <div className="console">
+              <div style={{ marginLeft: 10 }}>{res}</div>
+            </div>
+          </div>
         </div>
       </ThemeProvider>
     </>

@@ -6,23 +6,10 @@ import json
 
 @csrf_exempt
 def dashboard(request):
-    if request.method == "POST":
-        data = json.loads(request.body)
-        refresh = data.get("refresh")
-        if refresh == 1:
-            Dameng().set_count()
+    Dameng().set_count()
 
-    result = Dameng().get_count()
-    return JsonResponse(
-        {
-            "t1": result[0][1],
-            "t2": result[1][1],
-            "t3": result[2][1],
-            "t4": result[3][1],
-            "t5": result[4][1],
-            "t6": result[5][1],
-        }
-    )
+    res = Dameng().get_dashboard_info()
+    return JsonResponse(res)
 
 
 @csrf_exempt

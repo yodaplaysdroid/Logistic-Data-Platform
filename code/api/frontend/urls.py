@@ -12,4 +12,6 @@ urlpatterns = [
     path("ann4/", views.index),
     path("ann5/", views.index),
     path("ann6/", views.index),
+    path("doc/", views.index),
+    path("settings/", views.index),
 ]

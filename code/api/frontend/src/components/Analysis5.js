@@ -51,88 +51,97 @@ export default function Analysis5(request) {
   return (
     <>
       <ThemeProvider theme={theme}>
-        <div className="selection1">
-          <FormControl>
-            <Select
-              labelId="col"
-              id="col"
-              size="small"
-              sx={{ width: 100 }}
-              displayEmpty
-              defaultValue={""}
-              inputProps={{ "aria-label": "Without label" }}
-              onChange={handleColChange}
-            >
-              <MenuItem value={""}>筛选</MenuItem>
-              <MenuItem value={"堆存港口"}>堆存港口</MenuItem>
-              <MenuItem value={"货物名称"}>货物名称</MenuItem>
-            </Select>
-          </FormControl>
-          <FormControl>
-            {col === "" ? (
-              <Select
-                labelId="val"
-                id="val"
-                size="small"
-                sx={{ width: 100 }}
-                displayEmpty
-                disabled
-                defaultValue={""}
-                inputProps={{ "aria-label": "Without label" }}
-              >
-                <MenuItem value={""}>选择</MenuItem>
-              </Select>
-            ) : (
-              <Select
-                labelId="val"
-                id="val"
-                size="small"
-                sx={{ width: 100 }}
-                displayEmpty
-                defaultValue={""}
-                inputProps={{ "aria-label": "Without label" }}
-                onChange={(e) => {
-                  setVal(e.target.value);
-                }}
-              >
-                <MenuItem value={""}>筛选</MenuItem>
-                {res.map((item, index) => (
-                  <MenuItem value={item}>{item}</MenuItem>
-                ))}
-              </Select>
-            )}
-          </FormControl>
-          {val !== "" ? (
-            <FormControl>
-              <Button
-                color="primary"
-                variant="contained"
-                sx={{ width: 100, borderRadius: 10 }}
-                onClick={handleSubmit}
-              >
-                提交
-              </Button>
-            </FormControl>
-          ) : (
-            <FormControl>
-              <Button
-                color="primary"
-                variant="contained"
-                disabled
-                sx={{ width: 100, borderRadius: 10 }}
-              >
-                提交
-              </Button>
-            </FormControl>
-          )}
-        </div>
-        <div className="mainpanel">
-          <iframe
-            src="https://datav.dameng.com/dataview/publish/page.html?pageId=1670663863973978113&isTemplate=0"
-            width="1110"
-            height="560"
-            frameBorder="0"
-          ></iframe>
+        <div
+          style={{
+            height: "100%",
+            width: "100%",
+            display: "flex",
+          }}
+        >
+          <div className="mainpanel">
+            <iframe
+              src="https://datav.dameng.com/dataview/publish/page.html?pageId=1670663863973978113&isTemplate=0"
+              width="1110"
+              height="560"
+              frameBorder="0"
+              style={{ position: "absolute", zIndex: 0 }}
+            ></iframe>
+            <div className="selection1">
+              <FormControl>
+                <Select
+                  labelId="col"
+                  id="col"
+                  size="small"
+                  sx={{ width: 100 }}
+                  displayEmpty
+                  defaultValue={""}
+                  inputProps={{ "aria-label": "Without label" }}
+                  onChange={handleColChange}
+                >
+                  <MenuItem value={""}>筛选</MenuItem>
+                  <MenuItem value={"堆存港口"}>堆存港口</MenuItem>
+                  <MenuItem value={"货物名称"}>货物名称</MenuItem>
+                </Select>
+              </FormControl>
+              <FormControl>
+                {col === "" ? (
+                  <Select
+                    labelId="val"
+                    id="val"
+                    size="small"
+                    sx={{ width: 100 }}
+                    displayEmpty
+                    disabled
+                    defaultValue={""}
+                    inputProps={{ "aria-label": "Without label" }}
+                  >
+                    <MenuItem value={""}>选择</MenuItem>
+                  </Select>
+                ) : (
+                  <Select
+                    labelId="val"
+                    id="val"
+                    size="small"
+                    sx={{ width: 100 }}
+                    displayEmpty
+                    defaultValue={""}
+                    inputProps={{ "aria-label": "Without label" }}
+                    onChange={(e) => {
+                      setVal(e.target.value);
+                    }}
+                  >
+                    <MenuItem value={""}>筛选</MenuItem>
+                    {res.map((item, index) => (
+                      <MenuItem value={item}>{item}</MenuItem>
+                    ))}
+                  </Select>
+                )}
+              </FormControl>
+              {val !== "" ? (
+                <FormControl>
+                  <Button
+                    color="primary"
+                    variant="contained"
+                    sx={{ width: 100, borderRadius: 10 }}
+                    onClick={handleSubmit}
+                  >
+                    提交
+                  </Button>
+                </FormControl>
+              ) : (
+                <FormControl>
+                  <Button
+                    color="primary"
+                    variant="contained"
+                    disabled
+                    sx={{ width: 100, borderRadius: 10 }}
+                  >
+                    提交
+                  </Button>
+                </FormControl>
+              )}
+            </div>
+          </div>
         </div>
       </ThemeProvider>
     </>

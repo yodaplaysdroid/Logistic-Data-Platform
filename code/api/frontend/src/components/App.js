@@ -7,14 +7,25 @@ import Header from "./Header";
 export default function App(props) {
   return (
     <>
-      <div className="top">
-        <Header />
-      </div>
       <div className="left">
         <SideBar />
       </div>
-      <div>
-        <Routing />
+      <div
+        style={{
+          marginTop: 10,
+          marginLeft: 10,
+          marginBottom: 10,
+          marginRight: 30,
+          display: "block",
+          width: "100%",
+        }}
+      >
+        <div className="top">
+          <Header />
+        </div>
+        <div className="content">
+          <Routing />
+        </div>
       </div>
     </>
   );

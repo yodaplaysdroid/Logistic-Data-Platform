@@ -21,11 +21,9 @@ body {
 .top {
   background-color: #fdd9d9;
   border-radius: 30px;
-  position: absolute;
-  top: 10px;
-  left: 350px;
-  width: 1150px;
-  height: 100px;
+  left: 0;
+  right: 0;
+  height: 15%;
 }
 #title {
   text-align: center;
@@ -37,20 +35,16 @@ body {
   font-weight: 900;
 }
 .left {
-  position: absolute;
-  top: 10px;
-  left: 30px;
-  height: 710px;
-  padding-top: 10px;
+  margin-top: 10px;
+  margin-left: 30px;
+  margin-bottom: 10px;
+  padding-top: 5px;
+  padding-bottom: 5px;
   padding-left: 20px;
   padding-right: 20px;
   background-color: #fdd9d9;
   border-radius: 30px;
 }
 .content {
-  position: absolute;
-  left: 350px;
-  top: 130px;
-  width: 1150px;
-  height: 600px;
+  height: 85%;
 }

@@ -74,111 +74,121 @@ export default function Analysis3(request) {
   return (
     <>
       <ThemeProvider theme={theme}>
-        <div className="selection">
-          <FormControl fullWidth>
-            <Select
-              labelId="year1"
-              id="year1"
-              size="small"
-              sx={{ width: 100 }}
-              displayEmpty
-              defaultValue={""}
-              inputProps={{ "aria-label": "Without label" }}
-              onChange={(e) => {
-                setYear1(e.target.value);
-              }}
-            >
-              <MenuItem value={""}>年1</MenuItem>
-              {res.map((item, index) => (
-                <MenuItem value={item}>{item}</MenuItem>
-              ))}
-            </Select>
-            <Select
-              labelId="month1"
-              id="month1"
-              size="small"
-              sx={{ width: 100 }}
-              displayEmpty
-              defaultValue={""}
-              inputProps={{ "aria-label": "Without label" }}
-              onChange={(e) => {
-                setMonth1(e.target.value);
-              }}
-            >
-              <MenuItem value={""}>月1</MenuItem>
-              {res1.map((item, index) => (
-                <MenuItem value={item}>{item}</MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          <FormControl fullWidth>
-            <Select
-              labelId="year2"
-              id="year2"
-              size="small"
-              sx={{ width: 100, marginTop: 1 }}
-              displayEmpty
-              defaultValue={""}
-              inputProps={{ "aria-label": "Without label" }}
-              onChange={(e) => {
-                setYear2(e.target.value);
-              }}
-            >
-              <MenuItem value={""}>年2</MenuItem>
-              {res.map((item, index) => (
-                <MenuItem value={item}>{item}</MenuItem>
-              ))}
-            </Select>
-            <Select
-              labelId="month2"
-              id="month2"
-              size="small"
-              sx={{ width: 100 }}
-              displayEmpty
-              defaultValue={""}
-              inputProps={{ "aria-label": "Without label" }}
-              onChange={(e) => {
-                setMonth2(e.target.value);
-              }}
-            >
-              <MenuItem value={""}>月2</MenuItem>
-              {res1.map((item, index) => (
-                <MenuItem value={item}>{item}</MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          {(year1 !== "" && year2 !== "") || (year1 === "" && year2 === "") ? (
-            <FormControl fullWidth>
-              <Button
-                color="primary"
-                variant="contained"
-                sx={{ width: 100, borderRadius: 10, marginTop: 2 }}
-                onClick={handleSubmit}
-              >
-                提交
-              </Button>
-            </FormControl>
-          ) : (
-            <FormControl fullWidth>
-              <Button
-                color="primary"
-                variant="contained"
-                disabled
-                sx={{ width: 100, borderRadius: 10, marginTop: 2 }}
-                onClick={handleSubmit}
-              >
-                提交
-              </Button>
-            </FormControl>
-          )}
-        </div>
-        <div className="mainpanel">
-          <iframe
-            src="https://datav.dameng.com/dataview/publish/page.html?pageId=1670457086149926913&isTemplate=0"
-            width="1110"
-            height="560"
-            frameBorder="0"
-          ></iframe>
+        <div
+          style={{
+            height: "100%",
+            width: "100%",
+            display: "flex",
+          }}
+        >
+          <div className="mainpanel">
+            <iframe
+              src="https://datav.dameng.com/dataview/publish/page.html?pageId=1670457086149926913&isTemplate=0"
+              width="1110"
+              height="560"
+              frameBorder="0"
+              style={{ position: "absolute", zIndex: 0 }}
+            ></iframe>
+            <div className="selection">
+              <FormControl fullWidth>
+                <Select
+                  labelId="year1"
+                  id="year1"
+                  size="small"
+                  sx={{ width: 100 }}
+                  displayEmpty
+                  defaultValue={""}
+                  inputProps={{ "aria-label": "Without label" }}
+                  onChange={(e) => {
+                    setYear1(e.target.value);
+                  }}
+                >
+                  <MenuItem value={""}>年1</MenuItem>
+                  {res.map((item, index) => (
+                    <MenuItem value={item}>{item}</MenuItem>
+                  ))}
+                </Select>
+                <Select
+                  labelId="month1"
+                  id="month1"
+                  size="small"
+                  sx={{ width: 100 }}
+                  displayEmpty
+                  defaultValue={""}
+                  inputProps={{ "aria-label": "Without label" }}
+                  onChange={(e) => {
+                    setMonth1(e.target.value);
+                  }}
+                >
+                  <MenuItem value={""}>月1</MenuItem>
+                  {res1.map((item, index) => (
+                    <MenuItem value={item}>{item}</MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              <FormControl fullWidth>
+                <Select
+                  labelId="year2"
+                  id="year2"
+                  size="small"
+                  sx={{ width: 100, marginTop: 1 }}
+                  displayEmpty
+                  defaultValue={""}
+                  inputProps={{ "aria-label": "Without label" }}
+                  onChange={(e) => {
+                    setYear2(e.target.value);
+                  }}
+                >
+                  <MenuItem value={""}>年2</MenuItem>
+                  {res.map((item, index) => (
+                    <MenuItem value={item}>{item}</MenuItem>
+                  ))}
+                </Select>
+                <Select
+                  labelId="month2"
+                  id="month2"
+                  size="small"
+                  sx={{ width: 100 }}
+                  displayEmpty
+                  defaultValue={""}
+                  inputProps={{ "aria-label": "Without label" }}
+                  onChange={(e) => {
+                    setMonth2(e.target.value);
+                  }}
+                >
+                  <MenuItem value={""}>月2</MenuItem>
+                  {res1.map((item, index) => (
+                    <MenuItem value={item}>{item}</MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              {(year1 !== "" && year2 !== "") ||
+              (year1 === "" && year2 === "") ? (
+                <FormControl fullWidth>
+                  <Button
+                    color="primary"
+                    variant="contained"
+                    sx={{ width: 100, borderRadius: 10, marginTop: 2 }}
+                    onClick={handleSubmit}
+                  >
+                    提交
+                  </Button>
+                </FormControl>
+              ) : (
+                <FormControl fullWidth>
+                  <Button
+                    color="primary"
+                    variant="contained"
+                    disabled
+                    sx={{ width: 100, borderRadius: 10, marginTop: 2 }}
+                    onClick={handleSubmit}
+                  >
+                    提交
+                  </Button>
+                </FormControl>
+              )}
+            </div>
+          </div>
         </div>
       </ThemeProvider>
     </>

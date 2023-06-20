@@ -1,6 +1,4 @@
 .recordcountpanel {
-  top: 0px;
-  height: 50px;
   width: 100%;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
     Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
@@ -8,29 +6,44 @@
   display: flex;
   border-bottom: 2px solid #3e2b2b;
 }
-.mainpanel {
-  position: absolute;
+.subpanel {
   background-color: #fdd9d9;
   border-radius: 30px;
-  padding: 20px;
-  right: 0px;
-  bottom: 0px;
-  top: 0px;
-  left: 0px;
-  z-index: 0px;
+  height: 100%;
+}
+.subpanelheader {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+  font-size: large;
+  font-weight: bolder;
+  border-bottom: 2px solid #3e2b2b;
+}
+.subpanelcontent {
+  width: 100%;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+  justify-content: space-between;
+}
+.mainpanel {
+  background-color: #fdd9d9;
+  border-radius: 30px;
+  margin-top: 10px;
+  flex-grow: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 .selection {
-  position: relative;
-  width: 200px;
-  top: 20px;
-  left: 1020px;
+  position: absolute;
+  width: min-content;
+  right: 47px;
+  top: 150px;
   z-index: 1;
 }
 .selection1 {
-  position: relative;
-  width: 500px;
-  top: 20px;
-  left: 800px;
+  position: absolute;
+  top: 150px;
+  left: 1180px;
   z-index: 1;
   display: inline;
 }

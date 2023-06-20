@@ -126,3 +126,49 @@ group by s1.货物名称;
 
 create view 分析5 as
 select 货物名称 as x, 数量吞吐量, 总货重 from 分析五 where 堆存港口 = '杭州港';
+
+// d1
+SELECT 货物名称, count(货重_吨)
+FROM 集装箱动态, 物流信息
+WHERE 物流信息.提单号 = 集装箱动态.提单号
+and 操作日期 in (select distinct 操作日期 from 集装箱动态 where substring(操作日期, 1, 7) in (select distinct 年月 from 分析三 order by 年月 desc limit 3))
+group by 货物名称
+order by count(货重_吨) desc
+limit 3;
+
+// d2
+select 货物名称, count(总货重), sum(总货重) from 分析三 where 年月 in (
+select distinct 年月 from 分析三 order by 年月 desc limit 3)
+group by 货物名称
+order by count(总货重), sum(总货重) desc
+limit 3;
+
+// d3
+select substring(省市区, 1, 2), count(提单号)
+from 客户信息, 物流信息
+where 货主代码=客户编号
+group by substring(省市区, 1, 2)
+order by count(提单号) desc
+limit 3;
+
+// d4
+select 堆存港口, count(提单号)
+from 集装箱动态
+where 操作='入库'
+group by 堆存港口
+order by count(提单号) desc
+limit 3;
+
+select 堆存港口, count(提单号)
+from 集装箱动态
+where 操作='出库'
+group by 堆存港口
+order by count(提单号) desc
+limit 3;
+
+// d5
+select substring(装货表.作业开始时间, 1, 7), avg(datediff(day, 装货表.作业开始时间, 卸货表.作业结束时间)) as 时间
+from 装货表, 卸货表
+where 装货表.提单号 = 卸货表.提单号
+group by substring(装货表.作业开始时间, 1, 7)
+order by substring(装货表.作业开始时间, 1, 7) desc

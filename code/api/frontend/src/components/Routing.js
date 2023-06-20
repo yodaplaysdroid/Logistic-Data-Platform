@@ -5,13 +5,15 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Mysql from "./Mysql";
 import Hdfs from "./Hdfs";
 import Minio from "./Minio";
-import RecordCount from "./RecordCount";
+import Dashboard from "./Dashboard";
 import Analysis1 from "./Analysis1";
 import Analysis2 from "./Analysis2";
 import Analysis3 from "./Analysis3";
 import Analysis4 from "./Analysis4";
 import Analysis5 from "./Analysis5";
 import Analysis6 from "./Analysis6";
+import Documentation from "./Documentation";
+import Settings from "./Settings";
 
 export default function HomePage(props) {
   return (
@@ -22,13 +24,7 @@ export default function HomePage(props) {
             path="/"
             element={
               <>
-                <div className="content">
-                  <div className="mainpanel">
-                    <div className="recordcountpanel">
-                      <RecordCount />
-                    </div>
-                  </div>
-                </div>
+                <Dashboard />
               </>
             }
           />
@@ -36,9 +32,7 @@ export default function HomePage(props) {
             path="/mysql/"
             element={
               <>
-                <div className="content">
-                  <Mysql />
-                </div>
+                <Mysql />
               </>
             }
           />
@@ -46,9 +40,7 @@ export default function HomePage(props) {
             path="/hdfs/"
             element={
               <>
-                <div className="content">
-                  <Hdfs />
-                </div>
+                <Hdfs />
               </>
             }
           />
@@ -56,9 +48,7 @@ export default function HomePage(props) {
             path="/minio/"
             element={
               <>
-                <div className="content">
-                  <Minio />
-                </div>
+                <Minio />
               </>
             }
           />
@@ -66,9 +56,7 @@ export default function HomePage(props) {
             path="/ann1/"
             element={
               <>
-                <div className="content">
-                  <Analysis1 />
-                </div>
+                <Analysis1 />
               </>
             }
           />
@@ -76,9 +64,7 @@ export default function HomePage(props) {
             path="/ann2/"
             element={
               <>
-                <div className="content">
-                  <Analysis2 />
-                </div>
+                <Analysis2 />
               </>
             }
           />
@@ -86,9 +72,7 @@ export default function HomePage(props) {
             path="/ann3/"
             element={
               <>
-                <div className="content">
-                  <Analysis3 />
-                </div>
+                <Analysis3 />
               </>
             }
           />
@@ -96,9 +80,7 @@ export default function HomePage(props) {
             path="/ann4/"
             element={
               <>
-                <div className="content">
-                  <Analysis4 />
-                </div>
+                <Analysis4 />
               </>
             }
           />
@@ -106,9 +88,7 @@ export default function HomePage(props) {
             path="/ann5/"
             element={
               <>
-                <div className="content">
-                  <Analysis5 />
-                </div>
+                <Analysis5 />
               </>
             }
           />
@@ -116,9 +96,23 @@ export default function HomePage(props) {
             path="/ann6/"
             element={
               <>
-                <div className="content">
-                  <Analysis6 />
-                </div>
+                <Analysis6 />
+              </>
+            }
+          />
+          <Route
+            path="/doc/"
+            element={
+              <>
+                <Documentation />
+              </>
+            }
+          />
+          <Route
+            path="/settings/"
+            element={
+              <>
+                <Settings />
               </>
             }
           />
